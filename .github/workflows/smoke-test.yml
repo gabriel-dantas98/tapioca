@@ -69,34 +69,57 @@ jobs:
     name: claude CLI one-shot (humanizer-br)
     runs-on: ubuntu-latest
     needs: claude-plugin-validate
-    if: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     steps:
+      - name: detect secret
+        id: gate
+        run: |
+          if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::ANTHROPIC_API_KEY not set — skipping paid one-shot job"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/checkout@v4
+        if: steps.gate.outputs.skip == 'false'
       - name: install claude CLI
+        if: steps.gate.outputs.skip == 'false'
         run: npm install -g @anthropic-ai/claude-code@latest
       - name: run skill one-shot
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        if: steps.gate.outputs.skip == 'false'
         run: |
           PROMPT="Use a skill /tapioca:humanizer-br para analisar e humanizar o texto em tests/fixtures/ai-flavored.md. Liste os padrões de IA detectados no texto (mencione cada categoria pelo nome) e em seguida apresente a versão reescrita. Não use emojis no output."
           claude --print --plugin-dir . "$PROMPT" > /tmp/claude-output.txt
           echo "--- claude output (first 80 lines) ---"
           head -80 /tmp/claude-output.txt
       - name: verify detection
+        if: steps.gate.outputs.skip == 'false'
         run: bash scripts/check-output.sh /tmp/claude-output.txt
 
   cursor-oneshot:
     name: cursor-agent one-shot (humanizer-br)
     runs-on: ubuntu-latest
     needs: claude-plugin-validate
-    if: ${{ secrets.CURSOR_API_KEY != '' }}
+    env:
+      CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
     steps:
+      - name: detect secret
+        id: gate
+        run: |
+          if [ -z "${CURSOR_API_KEY:-}" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::CURSOR_API_KEY not set — skipping paid one-shot job"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/checkout@v4
+        if: steps.gate.outputs.skip == 'false'
       - name: install cursor-agent
+        if: steps.gate.outputs.skip == 'false'
         run: curl https://cursor.com/install -fsS | bash
       - name: run skill one-shot
-        env:
-          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+        if: steps.gate.outputs.skip == 'false'
         run: |
           export PATH="$HOME/.local/bin:$PATH"
           PROMPT="Leia tests/fixtures/ai-flavored.md, leia skills/humanizer-br/SKILL.md, e aplique a skill no texto da fixture. Liste os padrões de IA detectados (mencione cada categoria pelo nome) e em seguida apresente a versão reescrita. Não use emojis no output."
@@ -104,4 +127,5 @@ jobs:
           echo "--- cursor-agent output (first 80 lines) ---"
           head -80 /tmp/cursor-output.txt
       - name: verify detection
+        if: steps.gate.outputs.skip == 'false'
         run: bash scripts/check-output.sh /tmp/cursor-output.txt
