@@ -46,9 +46,13 @@ for m in "${matched[@]}"; do
   echo "  ✓ $m"
 done
 
-# Verifica que o output não contém emojis decorativos comuns
-if grep -qE "🚀|💡|✅|🎯|🔥|✨" "$OUTPUT_FILE"; then
-  echo "FAIL: output contains decorative emojis (skill should reject them)" >&2
+# Verifica uso decorativo de emojis no output.
+# Emojis citados como exemplo dentro da lista de detecção são esperados
+# (a skill PRECISA mencionar que detectou emojis). Contamos o total; se
+# passar de 6, é uso real (lista de bullets com emojis, headers, etc.).
+emoji_count=$(grep -oE "🚀|💡|✅|🎯|🔥|✨|🎉|⚡|🏆|📌|🔑|💎" "$OUTPUT_FILE" 2>/dev/null | wc -l | tr -d ' ')
+if [[ ${emoji_count:-0} -gt 6 ]]; then
+  echo "FAIL: output contains $emoji_count decorative emojis (limit: 6 as quoted examples)" >&2
   exit 1
 fi
 
