@@ -29,14 +29,22 @@ jobs:
           echo "manifest OK"
       - name: skill frontmatter exists
         run: |
-          test -f skills/humanizer-br/SKILL.md
-          head -1 skills/humanizer-br/SKILL.md | grep -q '^---$'
-          grep -q '^name: humanizer-br$' skills/humanizer-br/SKILL.md
-          grep -q '^description:' skills/humanizer-br/SKILL.md
+          for skill in humanizer-br usabilidade-br; do
+            test -f "skills/$skill/SKILL.md"
+            head -1 "skills/$skill/SKILL.md" | grep -q '^---$'
+            grep -q "^name: $skill$" "skills/$skill/SKILL.md"
+            grep -q '^description:' "skills/$skill/SKILL.md"
+          done
       - name: agent frontmatter exists
         run: |
-          test -f agents/humanizer-br.md
-          head -1 agents/humanizer-br.md | grep -q '^---$'
+          for agent in humanizer-br usabilidade-br; do
+            test -f "agents/$agent.md"
+            head -1 "agents/$agent.md" | grep -q '^---$'
+          done
+      - name: usabilidade-br fixture present
+        run: |
+          test -f tests/fixtures/usabilidade-br/bad-page.html
+          test -f tests/fixtures/usabilidade-br/expected-violations.md
 
   claude-plugin-validate:
     name: claude plugin validate (token-free)

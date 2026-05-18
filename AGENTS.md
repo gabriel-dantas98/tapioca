@@ -42,6 +42,14 @@ tapioca/
 
 ## Skills
 
+### `usabilidade-br`
+
+Audita usabilidade de apps web contra as 10 heurísticas de Jakob Nielsen e gera um HTML report local self-contained com pontuação por heurística, evidência visual (screenshots via Chrome MCP) e um **fix prompt copiável por violação** — pronto pra colar em outro Claude Code apontando `file:line` quando `--code` é informado.
+
+Invocação: `/tapioca:usabilidade-br <url> [--code <path>] [--rotas <r1,r2>]`.
+
+Companion agent `usabilidade-br` paraleliza 10 passes (um por heurística) e correlaciona código ↔ evidência. Ver [`skills/usabilidade-br/SKILL.md`](./skills/usabilidade-br/SKILL.md) e [`skills/usabilidade-br/DESIGN.md`](./skills/usabilidade-br/DESIGN.md).
+
 ### `humanizer-br`
 
 Remove traços de escrita gerada por IA em textos PT-BR e injeta voz humana. Detecta padrões típicos: linguagem promocional, gerúndios empilhados, paralelismo negativo, regra dos três, vocabulário inflado ("vale ressaltar", "neste contexto"), Title Case herdado do inglês, aspas curvas, ganchos dramáticos artificiais.
@@ -56,6 +64,10 @@ Invocação: `/tapioca:humanizer-br <texto>` ou via menção natural ("humanize 
 Ver [`skills/humanizer-br/SKILL.md`](./skills/humanizer-br/SKILL.md) para o catálogo completo de padrões.
 
 ## Agents
+
+### `usabilidade-br`
+
+Companion da skill `usabilidade-br`. Paraleliza os 10 passes (um por heurística), correlaciona violações com componentes via grep no `--code` informado, calcula scores e monta o HTML report. Invocado automaticamente quando o usuário passa `--code`, múltiplas rotas, ou pede "audit sério".
 
 ### `humanizer-br`
 

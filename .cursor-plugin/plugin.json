@@ -1,6 +1,6 @@
 {
   "name": "tapioca",
-  "description": "Sabores brasileiros para Cursor: skills e agents focados em escrita, edição e fluxos editoriais em português brasileiro. Recheio inicial: humanizer-br.",
+  "description": "Sabores brasileiros para Cursor: skills e agents PT-BR. Recheios: humanizer-br (remove AI-tells em português), usabilidade-br (auditoria Nielsen com report HTML e fix prompts).",
   "version": "0.1.0",
   "author": {
     "name": "Gabriel Dantas",
@@ -9,5 +9,5 @@
   "homepage": "https://github.com/gabriel-dantas98/tapioca",
   "repository": "https://github.com/gabriel-dantas98/tapioca",
   "license": "MIT",
-  "keywords": ["pt-br", "portugues", "humanizer", "writing", "editorial", "brasil"]
+  "keywords": ["pt-br", "portugues", "humanizer", "writing", "editorial", "brasil", "usabilidade", "ux", "nielsen", "heuristics", "audit"]
 }
