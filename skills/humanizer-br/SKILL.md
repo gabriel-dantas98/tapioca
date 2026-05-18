@@ -15,7 +15,11 @@ allowed-tools:
 
 Editor especializado em remover marcas de escrita gerada por IA em PT-BR e injetar voz humana real. Adaptação do [WikiProject AI Cleanup](https://en.wikipedia.org/wiki/Wikipedia:WikiProject_AI_Cleanup) para português brasileiro, com extensões: voice presets, autoavaliação e engine opcional via Maritaca.
 
-**Crédito.** Esta skill é derivada de [mackswendhell/humanizer-pt-br](https://github.com/mackswendhell/humanizer-pt-br) (MIT, 2026). Diferencial principal: roda como plugin namespaceado, suporta rewrite via modelo PT-BR nativo, e oferece agent companion para multi-pass.
+**Crédito.** Esta skill descende de dois trabalhos:
+- [blader/humanizer](https://github.com/blader/humanizer) (MIT, ~19k stars) — humanizer canônico em inglês para Claude Code/OpenCode; estabeleceu o padrão de skill + voice calibration.
+- [mackswendhell/humanizer-pt-br](https://github.com/mackswendhell/humanizer-pt-br) (MIT, 2026) — primeira adaptação direta do catálogo para PT-BR.
+
+Diferencial principal do `tapioca/humanizer-br`: roda como plugin namespaceado (Claude Code + Cursor), suporta rewrite via modelo PT-BR nativo (Maritaca `sabia-3`), e oferece agent companion para multi-pass com autoavaliação.
 
 ## Como decidir o modo
 
@@ -225,6 +229,7 @@ Não escreva justificativa longa. O texto reescrito é a entrega; explicações 
 
 - [Wikipedia: Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing) — base do catálogo (em inglês)
 - [WikiProject AI Cleanup](https://en.wikipedia.org/wiki/Wikipedia:WikiProject_AI_Cleanup) — projeto que mantém o catálogo
+- [blader/humanizer](https://github.com/blader/humanizer) — humanizer canônico em inglês (MIT, ~19k stars), Claude Code + OpenCode
 - [mackswendhell/humanizer-pt-br](https://github.com/mackswendhell/humanizer-pt-br) — adaptação PT-BR de onde este trabalho deriva (MIT)
 - [Maritaca.ai](https://www.maritaca.ai) — modelo PT-BR nativo usado no modo opcional
 

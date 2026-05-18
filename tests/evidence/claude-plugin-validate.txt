@@ -1,9 +1,0 @@
-Validating plugin manifest: /Users/gdantas/git/gdantas/tapioca/.claude-plugin/plugin.json
-
-Validating plugin: /Users/gdantas/git/gdantas/tapioca/CLAUDE.md
-
-⚠ Found 1 warning:
-
-  ❯ root: CLAUDE.md at the plugin root is not loaded as project context. To ship context with your plugin, use a skill (skills/<name>/SKILL.md) instead.
-
-✔ Validation passed with warnings

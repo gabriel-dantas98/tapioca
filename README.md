@@ -16,9 +16,7 @@
 
 ---
 
-Plugin distribuível no formato [Claude Code Plugin](https://code.claude.com/docs/en/plugins). O nome `tapioca` é base neutra — pensada para receber vários recheios ao longo do tempo, todos com foco em PT-BR.
-
-> Imagem em `./assets/banner.png` — placeholder. Substituir pelo banner final antes do release público.
+Plugin distribuível nos formatos [Claude Code Plugin](https://code.claude.com/docs/en/plugins) e [Cursor Plugin](https://cursor.com/docs/reference/plugins). O nome `tapioca` é base neutra — pensada para receber vários recheios ao longo do tempo, todos com foco em PT-BR.
 
 ## Skills incluídas (v0.1)
 
@@ -34,7 +32,7 @@ Companion: agent `humanizer-br` (em `agents/`) que faz multi-pass com autoavalia
 
 ## Instalação
 
-### Via clone direto
+### Claude Code
 
 ```bash
 git clone https://github.com/gabriel-dantas98/tapioca ~/.claude/plugins/tapioca
@@ -42,7 +40,15 @@ git clone https://github.com/gabriel-dantas98/tapioca ~/.claude/plugins/tapioca
 
 Reinicie o Claude Code ou rode `/reload-plugins`.
 
-### Via --plugin-dir (desenvolvimento)
+### Cursor
+
+```bash
+git clone https://github.com/gabriel-dantas98/tapioca ~/.cursor/plugins/tapioca
+```
+
+O repo carrega manifestos para ambas as plataformas (`.claude-plugin/plugin.json` e `.cursor-plugin/plugin.json`) com a mesma `skills/` e `agents/` por baixo.
+
+### Via --plugin-dir (desenvolvimento, Claude Code)
 
 ```bash
 claude --plugin-dir /caminho/para/tapioca
@@ -97,7 +103,18 @@ Sem hooks, MCP ou LSP no curto prazo. Foco em **skills e agents** até a coleç�
 
 ## Crédito
 
-A skill `humanizer-br` é tributária de [mackswendhell/humanizer-pt-br](https://github.com/mackswendhell/humanizer-pt-br) (MIT), que adapta o [WikiProject AI Cleanup](https://en.wikipedia.org/wiki/Wikipedia:WikiProject_AI_Cleanup) para PT-BR. Diferenciais do `tapioca`: formato de plugin namespaceado, suporte opcional a engine PT-BR nativa (Maritaca), agent companion com multi-pass, e voice presets.
+A skill `humanizer-br` descende de duas linhagens:
+
+- [blader/humanizer](https://github.com/blader/humanizer) (MIT, ~19k stars) — humanizer canônico **em inglês** para Claude Code e OpenCode. Estabeleceu o padrão skill + voice calibration que esta skill estende.
+- [mackswendhell/humanizer-pt-br](https://github.com/mackswendhell/humanizer-pt-br) (MIT, 2026) — primeira adaptação direta do catálogo do WikiProject AI Cleanup para **PT-BR**.
+
+Diferenciais do `tapioca`:
+
+- **Plugin namespaceado** (não skill standalone): `/tapioca:humanizer-br`
+- **Cross-platform** desde v0.1: Claude Code e Cursor
+- **Engine PT-BR nativa opcional** (Maritaca `sabia-3`) além do default Claude
+- **Agent companion** com multi-pass e autoavaliação
+- **Voice presets** explicitamente documentados
 
 ## Licença
 

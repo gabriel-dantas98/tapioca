@@ -4,7 +4,14 @@
 
 ## O que é
 
-`tapioca` é um plugin distribuível (formato [Claude Code Plugin](https://code.claude.com/docs/en/plugins)) que empacota skills e agents PT-BR sob um único namespace. O nome é base neutra que recebe recheio — combina com o propósito de hospedar várias capabilities sob a mesma marca.
+`tapioca` é um plugin distribuível (formato [Claude Code Plugin](https://code.claude.com/docs/en/plugins) e [Cursor Plugin](https://cursor.com/docs/reference/plugins)) que empacota skills e agents PT-BR sob um único namespace. O nome é base neutra que recebe recheio — combina com o propósito de hospedar várias capabilities sob a mesma marca.
+
+**Cross-platform desde v0.1.** Ambos os manifestos vivem na raiz:
+
+- `.claude-plugin/plugin.json` — Claude Code
+- `.cursor-plugin/plugin.json` — Cursor
+
+Os componentes (`skills/`, `agents/`) são idênticos. Os schemas dos manifestos são compatíveis o suficiente que mantemos os dois arquivos sincronizados manualmente; quando divergirem, AGENTS.md fica como fonte de verdade.
 
 **Por que plugin em vez de skills soltas:**
 
@@ -56,17 +63,27 @@ Agent que orquestra a skill em multi-pass: detecta → reescreve → autoavalia 
 
 ## Prior art e crédito
 
-A skill é tributária do trabalho de [Mackswendhell/humanizer-pt-br](https://github.com/mackswendhell/humanizer-pt-br) (MIT, 2026), que por sua vez adapta o [WikiProject AI Cleanup](https://en.wikipedia.org/wiki/Wikipedia:WikiProject_AI_Cleanup) da Wikipedia para PT-BR. **Diferenciais do `tapioca`:**
+Dois trabalhos seminais na linhagem:
 
-| Eixo | mackswendhell/humanizer-pt-br | tapioca/humanizer-br |
-|---|---|---|
-| Distribuição | Skill standalone (`~/.claude/skills/`) | Plugin namespaceado (`/tapioca:humanizer-br`) |
-| Engine de rewrite | Sempre Claude | Claude por padrão, **Maritaca sabia-3 opcional** |
-| Companions | Apenas SKILL.md | Skill + agent multi-pass |
-| Voice presets | Não | Sim (instruções por perfil de voz — ex. SOUL.md do autor) |
-| Escopo | Único humanizer | Plugin extensível para outras skills PT-BR |
+1. **[blader/humanizer](https://github.com/blader/humanizer)** (MIT, ~19k stars) — o humanizer canônico para Claude Code e OpenCode. Foco em **inglês**. Introduziu o padrão "skill standalone + voice calibration" e prova que o catálogo do WikiProject AI Cleanup vira skill efetiva. Não cobre PT-BR.
 
-A licença MIT do prior art permite essa derivação; a atribuição é mantida em `SKILL.md`, `README.md` e neste documento.
+2. **[mackswendhell/humanizer-pt-br](https://github.com/mackswendhell/humanizer-pt-br)** (MIT, 2026) — primeira adaptação direta do catálogo para PT-BR. Skill standalone, single-file. É o nosso prior art direto.
+
+Ambos derivam do [WikiProject AI Cleanup](https://en.wikipedia.org/wiki/Wikipedia:WikiProject_AI_Cleanup) da Wikipedia.
+
+**Diferenciais do `tapioca`:**
+
+| Eixo | blader/humanizer | mackswendhell/humanizer-pt-br | tapioca/humanizer-br |
+|---|---|---|---|
+| Idioma | Inglês | PT-BR | PT-BR |
+| Distribuição | Skill standalone | Skill standalone | **Plugin namespaceado** |
+| Plataformas | Claude Code + OpenCode | Claude Code | **Claude Code + Cursor** |
+| Engine de rewrite | Claude | Claude | Claude + **Maritaca sabia-3 opcional** |
+| Companions | SKILL.md | SKILL.md | Skill + **agent multi-pass** |
+| Voice presets | Sim (voice calibration) | Não | Sim |
+| Escopo do repo | Skill única | Skill única | **Plugin extensível** (futuras skills PT-BR) |
+
+A licença MIT dos prior arts permite essa derivação; atribuição mantida em `SKILL.md`, `README.md` e neste documento.
 
 ## Convenções
 
@@ -81,10 +98,14 @@ A licença MIT do prior art permite essa derivação; a atribuição é mantida 
 v0.1 distribuído por clone direto:
 
 ```bash
-git clone https://github.com/gdantas/tapioca ~/.claude/plugins/tapioca
+# Claude Code
+git clone https://github.com/gabriel-dantas98/tapioca ~/.claude/plugins/tapioca
+
+# Cursor (formato compatível — mesmo repo)
+git clone https://github.com/gabriel-dantas98/tapioca ~/.cursor/plugins/tapioca
 ```
 
-Submissão ao marketplace oficial Anthropic prevista para v0.2, quando houver pelo menos duas skills no plugin.
+Submissão aos marketplaces oficiais (Anthropic e Cursor) prevista para v0.2, quando houver pelo menos duas skills no plugin.
 
 ## Não-objetivos
 
