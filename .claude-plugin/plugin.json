@@ -1,0 +1,13 @@
+{
+  "name": "tapioca",
+  "description": "Sabores brasileiros para Claude Code: skills e agents focados em escrita, edição e fluxos editoriais em português brasileiro. Recheio inicial: humanizer-br.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Gabriel Dantas",
+    "url": "https://gdantas.com.br"
+  },
+  "homepage": "https://github.com/gabriel-dantas98/tapioca",
+  "repository": "https://github.com/gabriel-dantas98/tapioca",
+  "license": "MIT",
+  "keywords": ["pt-br", "portugues", "humanizer", "writing", "editorial", "brasil"]
+}
