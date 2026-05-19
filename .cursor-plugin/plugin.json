@@ -1,6 +1,6 @@
 {
   "name": "tapioca",
-  "description": "Sabores brasileiros para Claude Code: skills e agents PT-BR. Recheios: humanizer-br (remove AI-tells em português), usabilidade-br (auditoria Nielsen com report HTML e fix prompts).",
+  "description": "Sabores brasileiros para Cursor: skills e agents PT-BR. Recheios: humanizer-br (remove AI-tells em português), usabilidade-br (auditoria Nielsen com report HTML e fix prompts).",
   "version": "0.1.0",
   "author": {
     "name": "Gabriel Dantas",
