@@ -18,7 +18,22 @@
 
 Plugin distribuível nos formatos [Claude Code Plugin](https://code.claude.com/docs/en/plugins) e [Cursor Plugin](https://cursor.com/docs/reference/plugins). O nome `tapioca` é base neutra — pensada para receber vários recheios ao longo do tempo, todos com foco em PT-BR.
 
-## Skills incluídas (v0.1)
+## Skills incluídas
+
+### `/tapioca:usabilidade-br`
+
+Audita usabilidade de apps web contra as 10 heurísticas de Jakob Nielsen. Captura evidência via Chrome MCP, opcionalmente correlaciona com código fonte (`--code <path>`) e gera um HTML report local self-contained com:
+
+- Score geral (0–100) e por heurística
+- Evidência visual (screenshots embutidas)
+- Snippet de código com `file:line` quando o componente é localizado
+- **Fix prompt copiável** por violação — pronto pra colar em outro Claude Code
+
+Companion agent paraleliza 10 passes (um por heurística) e monta o relatório.
+
+```text
+/tapioca:usabilidade-br http://localhost:3000 --code ./src
+```
 
 ### `/tapioca:humanizer-br`
 
