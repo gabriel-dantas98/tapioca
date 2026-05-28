@@ -34,13 +34,39 @@ tapioca/
 ├── CLAUDE.md                 # Aponta pra AGENTS.md
 ├── README.md                 # Vitrine pública
 ├── skills/
-│   └── humanizer-br/
-│       └── SKILL.md          # Skill v0.1
+│   ├── humanizer-br/
+│   │   └── SKILL.md          # Skill prompt-only
+│   ├── usabilidade-br/
+│   │   ├── SKILL.md
+│   │   └── DESIGN.md
+│   └── multi-gen/
+│       ├── SKILL.md          # Entry point
+│       ├── DESIGN.md
+│       ├── run_engines.py    # Dispatch paralelo + validação
+│       ├── build_preview.py  # HTML comparativo
+│       └── tests/smoke_test.py
 └── agents/
-    └── humanizer-br.md       # Agent companion (opcional)
+    ├── humanizer-br.md
+    └── usabilidade-br.md
 ```
 
 ## Skills
+
+### `multi-gen`
+
+Dispara vários CLIs de IA em paralelo (mínimo `codex` e `cursor-agent`) a partir de um briefing de imagem, valida cada saída (SVG bem-formado), e monta um preview HTML comparativo (claro + escuro + tira de favicons 16/32/48/180) pra escolher o vencedor antes do refino manual. Não é editor — só compara e mostra.
+
+Pipeline em dois passos (rodar via scripts, não reinventar):
+
+1. `python3 skills/multi-gen/run_engines.py --briefing "<texto>" [--palette "#hex,#hex"] [--format svg] [--engines codex,cursor] [--timeout 180] --out-dir /tmp/multi-gen-<slug>` — pré-checa auth de cada motor, dispara em paralelo (timeout portável macOS via Popen+killpg), extrai e valida o artefato, grava `raw.txt` + `out.<ext>` + `status.json` por engine. Motor indisponível vira SKIP, não trava o resto.
+2. `python3 skills/multi-gen/build_preview.py --out-dir <run-dir>` — gera `index.html` self-contained com painéis claro/escuro.
+
+Compõe com `preview-server` (do control-plane do Gabriel) pra servir o comparativo e coletar o veredito. Ver [`skills/multi-gen/SKILL.md`](./skills/multi-gen/SKILL.md), [`skills/multi-gen/DESIGN.md`](./skills/multi-gen/DESIGN.md), smoke test em `skills/multi-gen/tests/smoke_test.py` (rápido, determinístico, não chama os CLIs reais).
+
+Gotchas verificados dos invocadores (já embutidos no runner, documentados pra quando adicionar motor novo):
+
+- `codex exec --skip-git-repo-check "$PROMPT" < /dev/null` — sem o `/dev/null` trava lendo stdin; fora de repo git exige a flag. Stdout tem ruído de log (banner, `tokens used`) → extrair `<svg>...</svg>`.
+- `cursor-agent -p "$PROMPT" --output-format text -f < /dev/null` — exige auth prévia (`cursor-agent login` ou `CURSOR_API_KEY`) e `-f` pra confiar no diretório. Pré-check via `cursor-agent status`.
 
 ### `usabilidade-br`
 
