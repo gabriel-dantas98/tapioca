@@ -20,6 +20,21 @@ Plugin distribuível nos formatos [Claude Code Plugin](https://code.claude.com/d
 
 ## Skills incluídas
 
+### `/tapioca:multi-gen`
+
+Dispara vários CLIs de IA em paralelo (mínimo `codex` e `cursor-agent`) a partir de um briefing de imagem, valida cada saída (SVG bem-formado) e monta um preview HTML comparativo com painel claro, escuro e tira de favicons (16/32/48/180px) pra escolher o vencedor antes do refino manual.
+
+- Dispatch paralelo com timeout portável (macOS sem `gtimeout`)
+- Pré-check de auth do `cursor-agent` (vira SKIP em vez de travar)
+- Extração robusta do `<svg>` quando o CLI mistura log na stdout
+- Saída por engine: `raw.txt`, `out.<ext>`, `status.json` no run-dir
+
+```text
+/tapioca:multi-gen "logo geometrico p/ Novarum, paleta azul" --palette "#2E5BFF,#FFFFFF"
+```
+
+Compõe com a skill `preview-server` (do control-plane) pra servir o `index.html`.
+
 ### `/tapioca:usabilidade-br`
 
 Audita usabilidade de apps web contra as 10 heurísticas de Jakob Nielsen. Captura evidência via Chrome MCP, opcionalmente correlaciona com código fonte (`--code <path>`) e gera um HTML report local self-contained com:
