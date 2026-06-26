@@ -2,6 +2,10 @@
 
 Leis do repositório. Não-negociáveis. Mudança aqui é decisão consciente, não conveniência.
 
+## 0. Tese
+
+tapioca é um **repositório central de capabilities de IA reusáveis** — skills, agents e MCPs — versionados, validados e instaláveis no Claude Code e no Cursor. A postura é de platform engineering: em vez de skill solta espalhada por repo, um hub único com manifesto, CI e padrão de contribuição. A massa é neutra; os recheios evoluem. O conteúdo de hoje é PT-BR, mas o repo não é PT-BR-locked.
+
 ## 1. Fonte de verdade vendor-neutral
 
 `.agents/` é a fonte canônica de guidance pra qualquer agente (Claude, Cursor, Bugbot, etc.).
@@ -19,7 +23,7 @@ Distinção que sustenta o layout:
 
 ## 3. Voz e tipografia
 
-- **PT-BR em tudo que é user-facing.** Comentário interno pode ser PT ou EN, sem misturar no mesmo arquivo.
+- **Cada skill declara sua própria voz** no DESIGN.md. As skills de hoje são PT-BR; o repo aceita qualquer domínio/idioma desde que a skill diga qual é a voz dela. A guidance do repo (`.agents/`, README) é PT-BR.
 - **Sem emojis** em SKILL.md, README ou output de skill. A própria `humanizer-br` trata emoji decorativo como traço de IA — usar seria contradição.
 - **Aspas retas** (`"`), nunca curvas.
 - **Headings em sentence case**, nunca Title Case.
@@ -35,7 +39,7 @@ Distinção que sustenta o layout:
 
 ## 5. Não-objetivos do repo
 
-- Reescrever conteúdo em outras línguas. Escopo é PT-BR.
-- Classificar texto como IA automaticamente. As skills assumem o input; não detectam autoria.
-- Substituir editor/designer humano. As skills são assistivas.
-- Otimizar SEO ou copy de vendas. A meta é voz humana, não conversão.
+- **Não é dumping ground.** Toda capability entra com DESIGN.md, manifesto sincronizado e smoke test. Sem skill órfã ou não-validada.
+- **Não acopla a serviço externo sem justificativa.** Capability deve rodar no Claude/CLI por padrão. Dependência de API de terceiro exige decisão explícita no DESIGN.md, nunca como default silencioso.
+- **Não é vendor-locked.** O que serve aos dois alvos mora no canônico; adapters ficam mínimos.
+- **Não substitui o humano.** As capabilities são assistivas, não autoritativas.

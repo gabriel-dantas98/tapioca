@@ -36,7 +36,7 @@ Inputs opcionais:
 Ambiente esperado:
 - Chrome MCP disponível (`mcp__claude-in-chrome__*`)
 - `preview-server` ou similar no host (pra abrir o HTML report no browser)
-- Opcional: `MARITACA_API_KEY` se o usuário quiser texto do report em PT-BR mais natural (modo análogo ao humanizer-br)
+- `humanizer-br` (skill irmã) pra calibrar o texto descritivo do report
 
 ## Outputs
 
@@ -104,7 +104,7 @@ Report HTML segue padrão tapioca:
 - Sem emojis decorativos (mas ✓⚠✗ como ícones de status são OK — semânticos, não decorativos)
 - Sentence case em todos os headings
 - Aspas retas
-- Texto descritivo passa pelo `humanizer-br` antes de cair no HTML quando `MARITACA_API_KEY` presente; senão Claude escreve direto (já calibrado)
+- Texto descritivo passa pelo `humanizer-br` (skill irmã) antes de cair no HTML
 
 Tom: **revisor sênior fazendo code review de UX**. Direto, evidência-primeiro, sem hedge ("você poderia talvez considerar..."). Aponta o problema, mostra a evidência, sugere o fix.
 

@@ -20,6 +20,60 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  lint:
+    name: lint (json + shell + refs + decoupling)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: json válido (todos os manifestos)
+        run: |
+          for f in .claude-plugin/plugin.json .claude-plugin/marketplace.json \
+                   .cursor-plugin/plugin.json .cursor-plugin/marketplace.json; do
+            jq -e . "$f" >/dev/null && echo "ok $f"
+          done
+      - name: shellcheck
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
+          shellcheck .agents/skills/smoke-test-skills/run.sh scripts/*.sh
+      - name: refs canônicos (@.path) em .md resolvem
+        run: |
+          rc=0
+          while IFS= read -r -d '' file; do
+            while IFS= read -r ref; do
+              p="${ref#@}"; p="${p%/}"
+              if [ -n "$p" ] && [ ! -e "$p" ]; then
+                echo "::error::$file referencia path inexistente: @$p"; rc=1
+              fi
+            done < <(grep -Eo '@\.[A-Za-z0-9._/-]+' "$file" | sort -u || true)
+          done < <(find . -path ./.git -prune -o -type f -name '*.md' -print0)
+          exit $rc
+      - name: guard de desacoplamento (sem dependência externa proibida)
+        run: |
+          if grep -ril maritaca --include='*.md' --include='*.json' --include='*.html' --include='*.py' --include='*.sh' . | grep -v '.git/'; then
+            echo "::error::referência a serviço externo desacoplado encontrada — capabilities rodam no Claude/CLI por padrão (constituição §5)"
+            exit 1
+          fi
+          echo "sem acoplamento externo proibido"
+
+  conformance:
+    name: conformance (DESIGN.md + skills + exec bits)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: toda skill shippada tem SKILL.md + DESIGN.md com name correto
+        run: |
+          for dir in skills/*/; do
+            name="$(basename "$dir")"
+            test -f "$dir/SKILL.md"  || { echo "::error::$dir sem SKILL.md"; exit 1; }
+            test -f "$dir/DESIGN.md" || { echo "::error::$dir sem DESIGN.md (constituição §4)"; exit 1; }
+            grep -q "^name: $name$" "$dir/SKILL.md" || { echo "::error::$dir/SKILL.md: name != $name"; exit 1; }
+          done
+          echo "skills conformes"
+      - name: harness de smoke é executável
+        run: |
+          test -x .agents/skills/smoke-test-skills/run.sh || { echo "::error::run.sh não é executável"; exit 1; }
+          echo "run.sh executável"
+
   validate-manifest:
     name: validate plugin.json + frontmatter
     runs-on: ubuntu-latest
@@ -75,7 +129,7 @@ jobs:
   claude-plugin-validate:
     name: claude plugin validate (token-free)
     runs-on: ubuntu-latest
-    needs: validate-manifest
+    needs: [lint, conformance, validate-manifest]
     steps:
       - uses: actions/checkout@v4
       - name: install claude CLI
