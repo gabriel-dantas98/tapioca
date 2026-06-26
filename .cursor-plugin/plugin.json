@@ -1,13 +1,20 @@
 {
   "name": "tapioca",
+  "displayName": "tapioca",
   "description": "Sabores brasileiros para Cursor: skills e agents PT-BR. Recheios: humanizer-br (remove AI-tells em português), usabilidade-br (auditoria Nielsen com report HTML e fix prompts), multi-gen (dispara CLIs de IA em paralelo pra gerar imagem com comparativo lado a lado).",
   "version": "0.2.0",
   "author": {
     "name": "Gabriel Dantas",
-    "url": "https://gdantas.com.br"
+    "email": "gabsdevops@gmail.com"
   },
-  "homepage": "https://github.com/gabriel-dantas98/tapioca",
+  "publisher": "Gabriel Dantas",
+  "homepage": "https://gabriel-dantas98.github.io/tapioca",
   "repository": "https://github.com/gabriel-dantas98/tapioca",
   "license": "MIT",
-  "keywords": ["pt-br", "portugues", "humanizer", "writing", "editorial", "brasil", "usabilidade", "ux", "nielsen", "heuristics", "audit", "image-generation", "svg", "logo", "multi-engine", "codex", "cursor-agent"]
+  "logo": "assets/banner.png",
+  "category": "productivity",
+  "keywords": ["pt-br", "portugues", "humanizer", "writing", "editorial", "brasil", "usabilidade", "ux", "nielsen", "heuristics", "audit", "image-generation", "svg", "logo", "multi-engine", "codex", "cursor-agent"],
+  "tags": ["pt-br", "writing", "ux", "image-generation"],
+  "skills": "./skills/",
+  "agents": "./agents/"
 }

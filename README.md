@@ -64,19 +64,24 @@ Companion: agent `humanizer-br` (em `agents/`) que faz multi-pass com autoavalia
 
 ### Claude Code
 
-```bash
-git clone https://github.com/gabriel-dantas98/tapioca ~/.claude/plugins/tapioca
+```text
+/plugin marketplace add gabriel-dantas98/tapioca
+/plugin install tapioca@tapioca
 ```
-
-Reinicie o Claude Code ou rode `/reload-plugins`.
 
 ### Cursor
 
+Settings → Plugins → Add marketplace → `gabriel-dantas98/tapioca`, depois instale o plugin `tapioca` pela lista. O repo carrega o manifesto do Cursor em `.cursor-plugin/` com a mesma `skills/` e `agents/` por baixo.
+
+### Claude Desktop
+
+O Desktop não consome plugin nem marketplace — empacote a skill avulsa e suba em Settings → Capabilities → Skills:
+
 ```bash
-git clone https://github.com/gabriel-dantas98/tapioca ~/.cursor/plugins/tapioca
+zip -r humanizer-br.zip skills/humanizer-br/
 ```
 
-O repo carrega manifestos para ambas as plataformas (`.claude-plugin/plugin.json` e `.cursor-plugin/plugin.json`) com a mesma `skills/` e `agents/` por baixo.
+Só `humanizer-br` é portável; as outras dependem de CLIs e Chrome MCP.
 
 ### Via --plugin-dir (desenvolvimento, Claude Code)
 

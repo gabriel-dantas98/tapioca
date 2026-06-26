@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>tapioca — sabores brasileiros pro Claude Code & Cursor</title>
+  <meta name="description" content="Plugin PT-BR distribuível pra Claude Code e Cursor. Recheios: humanizer-br, usabilidade-br e multi-gen." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="nav__brand">🫓 <b>tapioca</b></div>
+    <div class="nav__links">
+      <a href="#recheios">Recheios</a>
+      <a href="#instalar">Instalar</a>
+      <a href="#roadmap">Roadmap</a>
+      <a class="nav__gh" href="https://github.com/gabriel-dantas98/tapioca">GitHub</a>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="wrap hero__grid">
+      <div>
+        <span class="hero__eyebrow">Plugin PT-BR · Claude Code · Cursor</span>
+        <h1>Massa neutra,<br /><em>recheio brasileiro.</em></h1>
+        <p class="hero__lead">
+          tapioca é uma base de plugin pra Claude Code e Cursor. Ela recebe skills e agents
+          pensados em português: humanizar texto, auditar usabilidade contra Nielsen e gerar imagem comparando engines.
+        </p>
+        <div class="hero__cta">
+          <a class="btn btn--primary" href="#instalar">Instalar agora →</a>
+          <a class="btn btn--ghost" href="#recheios">Ver os recheios</a>
+        </div>
+      </div>
+      <figure class="hero__card">
+        <img src="assets/banner.png" alt="tapioca — sabores brasileiros pro Claude Code" />
+        <figcaption>/tapioca:humanizer-br · /tapioca:usabilidade-br · /tapioca:multi-gen</figcaption>
+      </figure>
+    </div>
+  </header>
+
+  <section id="recheios">
+    <div class="wrap">
+      <p class="kicker">// os recheios</p>
+      <h2 class="section-title">Três skills, uma massa só</h2>
+      <p class="section-sub">Cada recheio é uma skill com agent companion quando a tarefa pede multi-pass. Tudo namespaceado em <code>/tapioca:</code>.</p>
+
+      <div class="recheios">
+        <article class="recheio">
+          <span class="recheio__no">01</span>
+          <span class="recheio__cmd">/tapioca:humanizer-br</span>
+          <h3>humanizer-br</h3>
+          <p>Tira o cheiro de IA de texto em português e devolve voz humana de verdade. Catálogo de 25+ padrões.</p>
+          <ul>
+            <li>Linguagem promocional, gerúndio empilhado, regra dos três</li>
+            <li>Modo Claude puro (custo zero) ou Maritaca sabiá-3</li>
+            <li>Agent companion faz multi-pass com autoavaliação</li>
+          </ul>
+        </article>
+
+        <article class="recheio">
+          <span class="recheio__no">02</span>
+          <span class="recheio__cmd">/tapioca:usabilidade-br</span>
+          <h3>usabilidade-br</h3>
+          <p>Audita um app web contra as 10 heurísticas de Nielsen e devolve um report HTML self-contained.</p>
+          <ul>
+            <li>Score por heurística + evidência visual embutida</li>
+            <li>Snippet de código com <code>file:line</code> quando localiza</li>
+            <li>Fix prompt copiável por violação</li>
+          </ul>
+        </article>
+
+        <article class="recheio">
+          <span class="recheio__no">03</span>
+          <span class="recheio__cmd">/tapioca:multi-gen</span>
+          <h3>multi-gen</h3>
+          <p>Dispara vários CLIs de IA em paralelo a partir de um briefing e monta um comparativo lado a lado.</p>
+          <ul>
+            <li>codex + cursor-agent em paralelo, timeout portável</li>
+            <li>Valida cada SVG e extrai do log sujo</li>
+            <li>Preview com painel claro, escuro e tira de favicons</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="instalar" class="install">
+    <div class="wrap">
+      <p class="kicker">// pôr na mesa</p>
+      <h2 class="section-title">Instalação</h2>
+      <p class="section-sub">Mesma massa, três cozinhas. Escolha a sua.</p>
+
+      <div class="tabs" role="tablist">
+        <button class="tab is-active" data-panel="cc">Claude Code</button>
+        <button class="tab" data-panel="cursor">Cursor</button>
+        <button class="tab" data-panel="desktop">Claude Desktop</button>
+      </div>
+
+      <div class="panel is-active" id="cc">
+        <p class="panel__note">Adicione o marketplace e instale o plugin. As skills viram atalhos <strong>/tapioca:*</strong> na hora.</p>
+        <div class="code"><button class="copy">copiar</button><span class="c"># 1. registra o marketplace</span>
+/plugin marketplace add gabriel-dantas98/tapioca
+
+<span class="c"># 2. instala o plugin</span>
+/plugin install tapioca@tapioca</div>
+        <p class="panel__note">Em dev, sem marketplace: <span style="font-family:'JetBrains Mono',monospace">claude --plugin-dir /caminho/para/tapioca</span></p>
+      </div>
+
+      <div class="panel" id="cursor">
+        <p class="panel__note">O repo carrega o manifesto do Cursor em <strong>.cursor-plugin/</strong> com a mesma <strong>skills/</strong> e <strong>agents/</strong> por baixo.</p>
+        <div class="code"><button class="copy">copiar</button><span class="c"># adiciona o marketplace tapioca</span>
+Cursor → Settings → Plugins → Add marketplace
+<span class="p">gabriel-dantas98/tapioca</span>
+
+<span class="c"># depois instale o plugin "tapioca" pela lista</span></div>
+      </div>
+
+      <div class="panel" id="desktop">
+        <span class="badge-warn">⚠ caminho diferente</span>
+        <p class="panel__note">O Claude Desktop <strong>não consome plugins nem marketplaces</strong> — isso é coisa do Claude Code. O que viaja pro Desktop é <strong>Skill avulsa</strong>. Das três, só a <strong>humanizer-br</strong> roda lá (as outras dependem de CLIs e do Chrome MCP).</p>
+        <div class="code"><button class="copy">copiar</button><span class="c"># empacote a skill como pasta/zip</span>
+zip -r humanizer-br.zip skills/humanizer-br/
+
+<span class="c"># suba em Claude Desktop:</span>
+<span class="c"># Settings → Capabilities → Skills → Upload</span></div>
+        <p class="panel__note">Agents e o namespace <strong>/tapioca:*</strong> não existem no Desktop — é a skill pura.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="roadmap">
+    <div class="wrap">
+      <p class="kicker">// o que vem no forno</p>
+      <h2 class="section-title">Roadmap</h2>
+      <p class="section-sub">A massa é estável. O plano é ir recheando até a coleção pedir mais.</p>
+
+      <div class="road">
+        <div class="road__row done">
+          <span class="road__v">v0.1</span>
+          <span class="road__d"><b>humanizer-br</b> — skill + agent, formato de plugin, AGENTS.md, CI smoke tests</span>
+        </div>
+        <div class="road__row now">
+          <span class="road__v">v0.2</span>
+          <span class="road__d"><b>usabilidade-br + multi-gen</b> — auditoria Nielsen e geração multi-engine. Marketplace Claude Code + Cursor.</span>
+        </div>
+        <div class="road__row">
+          <span class="road__v">v0.3</span>
+          <span class="road__d"><b>editor-br</b> — revisão geral de PT-BR: concordância, regência, regionalismos</span>
+        </div>
+        <div class="road__row">
+          <span class="road__v">v0.4</span>
+          <span class="road__d">Submissão ao marketplace oficial da Anthropic</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="wrap foot__grid">
+      <div>
+        <div class="foot__brand">🫓 <b>tapioca</b></div>
+        <p>Feito por <a href="https://gdantas.com.br">Gabriel Dantas</a> · MIT</p>
+      </div>
+      <p>
+        Descende de <a href="https://github.com/blader/humanizer">blader/humanizer</a> e
+        <a href="https://github.com/mackswendhell/humanizer-pt-br">humanizer-pt-br</a>.
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    document.querySelectorAll(".tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("is-active"));
+        document.querySelectorAll(".panel").forEach((p) => p.classList.remove("is-active"));
+        tab.classList.add("is-active");
+        document.getElementById(tab.dataset.panel).classList.add("is-active");
+      });
+    });
+    document.querySelectorAll(".copy").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const code = btn.parentElement.innerText.replace(/^copiar\n?/, "").trim();
+        navigator.clipboard.writeText(code);
+        const old = btn.innerText; btn.innerText = "copiado ✓";
+        setTimeout(() => (btn.innerText = old), 1400);
+      });
+    });
+  </script>
+</body>
+</html>
