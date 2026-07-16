@@ -115,4 +115,3 @@ Imprime resumo curto no chat (ver formato no SKILL.md).
 - Skill `tapioca:usabilidade-br` (catálogo, template, critérios)
 - Chrome MCP (`mcp__claude-in-chrome__*`) — required
 - `python3` ou similar HTTP server (preview)
-- Opcional: `MARITACA_API_KEY` pra humanizar o sumário executivo

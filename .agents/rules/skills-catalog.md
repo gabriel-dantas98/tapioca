@@ -4,11 +4,7 @@ Referência de comportamento por skill. O detalhe completo mora em cada `SKILL.m
 
 ## humanizer-br
 
-Remove traços de IA em PT-BR e injeta voz humana. Invocação: `/tapioca:humanizer-br <texto>` ou menção natural.
-
-Dois modos:
-1. **Prompt-only** (padrão): roda no Claude com o guia do `SKILL.md`. Custo zero.
-2. **Maritaca rewrite** (opcional): Claude detecta os padrões, mas o rewrite final vai pro `sabia-3` da Maritaca. Ativa quando `MARITACA_API_KEY` está no ambiente. Endpoint `https://chat.maritaca.ai/api/chat/completions`, header `Authorization: Key <token>`.
+Remove traços de IA em PT-BR e injeta voz humana. Invocação: `/tapioca:humanizer-br <texto>` ou menção natural. Roda 100% no Claude/CLI — sem dependência externa nem API key. Aceita voice preset opcional (arquivo de exemplo) pra calibrar a voz.
 
 Companion `agents/humanizer-br.md`: multi-pass detecta → reescreve → autoavalia (1–10 em cinco dimensões) → reentra se score < 35.
 

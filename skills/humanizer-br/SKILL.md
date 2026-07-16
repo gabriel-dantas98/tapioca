@@ -13,23 +13,17 @@ allowed-tools:
 
 # humanizer-br
 
-Editor especializado em remover marcas de escrita gerada por IA em PT-BR e injetar voz humana real. Adaptação do [WikiProject AI Cleanup](https://en.wikipedia.org/wiki/Wikipedia:WikiProject_AI_Cleanup) para português brasileiro, com extensões: voice presets, autoavaliação e engine opcional via Maritaca.
+Editor especializado em remover marcas de escrita gerada por IA em PT-BR e injetar voz humana real. Adaptação do [WikiProject AI Cleanup](https://en.wikipedia.org/wiki/Wikipedia:WikiProject_AI_Cleanup) para português brasileiro, com extensões: voice presets e autoavaliação.
 
 **Crédito.** Esta skill descende de dois trabalhos:
 - [blader/humanizer](https://github.com/blader/humanizer) (MIT, ~19k stars) — humanizer canônico em inglês para Claude Code/OpenCode; estabeleceu o padrão de skill + voice calibration.
 - [mackswendhell/humanizer-pt-br](https://github.com/mackswendhell/humanizer-pt-br) (MIT, 2026) — primeira adaptação direta do catálogo para PT-BR.
 
-Diferencial principal do `tapioca/humanizer-br`: roda como plugin namespaceado (Claude Code + Cursor), suporta rewrite via modelo PT-BR nativo (Maritaca `sabia-3`), e oferece agent companion para multi-pass com autoavaliação.
+Diferencial principal do `tapioca/humanizer-br`: roda como plugin namespaceado (Claude Code + Cursor) e oferece agent companion para multi-pass com autoavaliação.
 
-## Como decidir o modo
+## Voice preset (opcional)
 
-Antes de processar, decida o modo:
-
-1. **Texto curto (< 500 palavras) e sem `MARITACA_API_KEY` no ambiente** → modo Claude puro.
-2. **Texto longo OU usuário pediu "qualidade máxima" OU `MARITACA_API_KEY` presente** → modo Maritaca-rewrite: você detecta os padrões e delega o rewrite ao `sabia-3`. Ver "Modo Maritaca" abaixo.
-3. **Usuário forneceu voice preset** (arquivo de exemplo, ex. SOUL.md, posts antigos) → leia primeiro com `Read`, extraia 3–5 marcas de voz (vocabulário, ritmo, perspectivas recorrentes), aplique na reescrita.
-
-Se o usuário não disse o modo e o texto é ambíguo, pergunte com `AskUserQuestion`. Default: Claude puro.
+Se o usuário forneceu um voice preset (arquivo de exemplo, ex. SOUL.md, posts antigos), leia primeiro com `Read`, extraia 3–5 marcas de voz (vocabulário, ritmo, perspectivas recorrentes) e aplique na reescrita. Sem preset, use a voz humana padrão deste guia.
 
 ## Sua tarefa
 
@@ -141,44 +135,6 @@ Se o usuário forneceu voice preset (SOUL.md, posts antigos), extraia 3–5 marc
 
 ---
 
-## Modo Maritaca (opcional)
-
-Quando `MARITACA_API_KEY` está disponível, delegue o **rewrite final** ao modelo PT-BR nativo. Você ainda faz a detecção e o sanity-check.
-
-**Fluxo:**
-
-1. Faça a detecção dos padrões (sua análise).
-2. Monte um prompt em PT-BR para o `sabia-3` com: texto original, lista dos padrões a corrigir, voice preset (se houver), restrições.
-3. Execute via `Bash`:
-
-```bash
-curl -sS https://chat.maritaca.ai/api/chat/completions \
-  -H "Authorization: Key $MARITACA_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d @payload.json
-```
-
-`payload.json` mínimo:
-
-```json
-{
-  "model": "sabia-3",
-  "messages": [
-    {"role": "system", "content": "Você é editor PT-BR. Reescreva mantendo o significado, removendo traços de IA conforme as instruções."},
-    {"role": "user", "content": "<instruções + texto>"}
-  ],
-  "temperature": 0.6,
-  "max_tokens": 2000
-}
-```
-
-4. Receba o rewrite, faça **passe final** seu pra garantir: (a) aspas retas, (b) sentence case nos headings, (c) sem emojis decorativos, (d) sem rastro de chatbot do próprio Maritaca.
-5. Apresente ao usuário com nota de que o Maritaca participou.
-
-**Quando NÃO usar Maritaca:** textos muito curtos (<200 palavras — overhead não compensa), textos técnicos com termos em inglês (`sabia-3` pode "PT-BRizar" demais), ou quando o usuário pediu modo Claude puro.
-
----
-
 ## Checklist final
 
 Antes de entregar:
@@ -231,6 +187,5 @@ Não escreva justificativa longa. O texto reescrito é a entrega; explicações 
 - [WikiProject AI Cleanup](https://en.wikipedia.org/wiki/Wikipedia:WikiProject_AI_Cleanup) — projeto que mantém o catálogo
 - [blader/humanizer](https://github.com/blader/humanizer) — humanizer canônico em inglês (MIT, ~19k stars), Claude Code + OpenCode
 - [mackswendhell/humanizer-pt-br](https://github.com/mackswendhell/humanizer-pt-br) — adaptação PT-BR de onde este trabalho deriva (MIT)
-- [Maritaca.ai](https://www.maritaca.ai) — modelo PT-BR nativo usado no modo opcional
 
 **Insight central:** LLMs adivinham estatisticamente o que vem a seguir. O resultado tende ao genérico — o mais provável pra maior número de situações. Humanizar é injetar o improvável: a opinião específica, o ritmo quebrado, o detalhe sensorial que só quem viveu colocaria.
