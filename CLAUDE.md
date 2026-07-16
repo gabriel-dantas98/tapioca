@@ -1,3 +1,5 @@
 # CLAUDE.md
 
-Instruções autoritativas para agentes neste repositório vivem em **[AGENTS.md](./AGENTS.md)**. Leia primeiro.
+Use [`AGENTS.md`](./AGENTS.md) como entrypoint.
+
+Comportamento específico do Claude fica mínimo aqui. Guidance durável do repo mora em `.agents/`.

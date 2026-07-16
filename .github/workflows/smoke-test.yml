@@ -6,6 +6,8 @@ on:
       - 'skills/**'
       - 'agents/**'
       - '.claude-plugin/**'
+      - '.cursor-plugin/**'
+      - '.agents/**'
       - 'tests/**'
       - 'scripts/**'
       - '.github/workflows/smoke-test.yml'
@@ -26,7 +28,13 @@ jobs:
       - name: parse manifest
         run: |
           jq -e '.name == "tapioca" and (.version | length > 0)' .claude-plugin/plugin.json
-          echo "manifest OK"
+          echo "plugin.json OK"
+      - name: marketplace manifests present + valid
+        run: |
+          jq -e '.name == "tapioca" and (.plugins | length > 0) and (.plugins[0].source == "./")' .claude-plugin/marketplace.json
+          jq -e '.name == "tapioca" and (.plugins | length > 0) and (.plugins[0].source == "./")' .cursor-plugin/marketplace.json
+          jq -e '.skills == "./skills/" and .agents == "./agents/"' .cursor-plugin/plugin.json
+          echo "marketplace manifests OK"
       - name: skill frontmatter exists
         run: |
           for skill in humanizer-br usabilidade-br multi-gen; do
@@ -112,16 +120,12 @@ jobs:
       - name: install claude CLI
         if: steps.gate.outputs.skip == 'false'
         run: npm install -g @anthropic-ai/claude-code@latest
-      - name: run skill one-shot
+      - name: run skill one-shot + verify (shared harness)
         if: steps.gate.outputs.skip == 'false'
         run: |
-          PROMPT="Use a skill /tapioca:humanizer-br para analisar e humanizar o texto em tests/fixtures/ai-flavored.md. Liste os padrões de IA detectados no texto (mencione cada categoria pelo nome) e em seguida apresente a versão reescrita. Não use emojis no output."
-          claude --print --plugin-dir . "$PROMPT" > /tmp/claude-output.txt
+          .agents/skills/smoke-test-skills/run.sh humanizer-br claude
           echo "--- claude output (first 80 lines) ---"
-          head -80 /tmp/claude-output.txt
-      - name: verify detection
-        if: steps.gate.outputs.skip == 'false'
-        run: bash scripts/check-output.sh /tmp/claude-output.txt
+          head -80 /tmp/tapioca-smoke/humanizer-br-claude.txt
 
   cursor-oneshot:
     name: cursor-agent one-shot (humanizer-br)
@@ -144,14 +148,10 @@ jobs:
       - name: install cursor-agent
         if: steps.gate.outputs.skip == 'false'
         run: curl https://cursor.com/install -fsS | bash
-      - name: run skill one-shot
+      - name: run skill one-shot + verify (shared harness)
         if: steps.gate.outputs.skip == 'false'
         run: |
           export PATH="$HOME/.local/bin:$PATH"
-          PROMPT="Leia tests/fixtures/ai-flavored.md, leia skills/humanizer-br/SKILL.md, e aplique a skill no texto da fixture. Liste os padrões de IA detectados (mencione cada categoria pelo nome) e em seguida apresente a versão reescrita. Não use emojis no output."
-          cursor-agent --print --trust --sandbox disabled "$PROMPT" > /tmp/cursor-output.txt
+          .agents/skills/smoke-test-skills/run.sh humanizer-br cursor
           echo "--- cursor-agent output (first 80 lines) ---"
-          head -80 /tmp/cursor-output.txt
-      - name: verify detection
-        if: steps.gate.outputs.skip == 'false'
-        run: bash scripts/check-output.sh /tmp/cursor-output.txt
+          head -80 /tmp/tapioca-smoke/humanizer-br-cursor.txt
