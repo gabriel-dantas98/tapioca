@@ -1,0 +1,18 @@
+{
+  "$schema": "https://cursor.com/schemas/cursor-plugin/marketplace.json",
+  "name": "tapioca",
+  "owner": {
+    "name": "Gabriel Dantas",
+    "email": "gabsdevops@gmail.com"
+  },
+  "metadata": {
+    "description": "Sabores brasileiros para Cursor — skills e agents PT-BR (humanizer-br, usabilidade-br, multi-gen)."
+  },
+  "plugins": [
+    {
+      "name": "tapioca",
+      "source": "./",
+      "description": "Skills e agents PT-BR: humanizer-br (remove AI-tells), usabilidade-br (auditoria Nielsen com report HTML), multi-gen (geração multi-engine de imagem com comparativo)."
+    }
+  ]
+}

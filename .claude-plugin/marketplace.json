@@ -1,0 +1,22 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "tapioca",
+  "description": "Sabores brasileiros para Claude Code — skills e agents PT-BR (humanizer-br, usabilidade-br, multi-gen).",
+  "owner": {
+    "name": "Gabriel Dantas",
+    "email": "gabsdevops@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "tapioca",
+      "source": "./",
+      "description": "Skills e agents PT-BR: humanizer-br (remove AI-tells), usabilidade-br (auditoria Nielsen com report HTML), multi-gen (geração multi-engine de imagem com comparativo).",
+      "author": {
+        "name": "Gabriel Dantas",
+        "url": "https://gdantas.com.br"
+      },
+      "category": "productivity",
+      "homepage": "https://gabriel-dantas98.github.io/tapioca"
+    }
+  ]
+}
