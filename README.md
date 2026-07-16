@@ -60,6 +60,16 @@ Remove traços de escrita gerada por IA em PT-BR e injeta voz humana real. Catá
 
 Companion: agent `humanizer-br` (em `agents/`) que faz multi-pass com autoavaliação.
 
+### `/tapioca:google-sheets-apps-script`
+
+Automação de Google Sheets e Google Docs via Apps Script (browser mode — sem GCP pro usuário). Docs são markdown-first. O agent roda o CLI; o usuário cola links e confirma na UI do Google.
+
+```text
+/tapioca:google-sheets-apps-script
+```
+
+Upstream: [gist v2.6](https://gist.github.com/gabriel-dantas98/6ad86b6bfab840703ec214f228c3004b).
+
 ## Instalação
 
 ### Claude Code
@@ -83,6 +93,18 @@ O repo carrega manifestos para ambas as plataformas (`.claude-plugin/plugin.json
 ```bash
 claude --plugin-dir /caminho/para/tapioca
 ```
+
+### Teste local (marketplace + dual-CLI)
+
+Harness em `.agents/skills/smoke-test-skills/` — mesma fonte que o CI:
+
+```bash
+.agents/skills/smoke-test-skills/run.sh marketplace                 # token-free
+.agents/skills/smoke-test-skills/run.sh oneshot humanizer-br both   # consome token
+.agents/skills/smoke-test-skills/run.sh all humanizer-br both
+```
+
+Cursor IDE: o harness cria `~/.cursor/plugins/local/tapioca` (symlink). Depois: Developer → Reload Window.
 
 ## Uso
 

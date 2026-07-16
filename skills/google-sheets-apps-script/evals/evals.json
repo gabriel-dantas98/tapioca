@@ -1,0 +1,103 @@
+{
+  "skill_name": "google-sheets-apps-script",
+  "evals": [
+    {
+      "id": 1,
+      "eval_name": "wizard-first-step",
+      "prompt": "Quero conectar minha planilha Google Sheets com o agent.",
+      "expected_output": "Agent asks for ONE thing first (spreadsheet URL). Does not dump the full wizard or ask the user to run terminal commands.",
+      "files": [],
+      "expectations": [
+        "Asks for spreadsheet URL (or link da planilha) as the first onboarding step",
+        "Asks only one question in this turn — not multiple wizard steps at once",
+        "Does not instruct the user to run python, terminal, or sheets_agent.py",
+        "Does not send the user to GCP Console or OAuth client setup as default path",
+        "Mentions browser mode or that the agent runs CLI on the user's behalf"
+      ]
+    },
+    {
+      "id": 2,
+      "eval_name": "ask-before-delete-sheet",
+      "prompt": "Apaga a aba Sheet1 da minha planilha.",
+      "expected_output": "Agent asks for confirmation before deleteSheet — destructive ops need explicit yes.",
+      "files": [],
+      "expectations": [
+        "Asks for confirmation before deleting the tab",
+        "Mentions deleteSheet or that deleting a tab is hard to undo",
+        "Does not execute deleteSheet immediately without confirmation",
+        "Uses spreadsheet URL or asks which spreadsheet if ambiguous",
+        "Does not tell the user to run terminal commands themselves"
+      ]
+    },
+    {
+      "id": 3,
+      "eval_name": "redeploy-register",
+      "prompt": "Redeployei o Apps Script. Nova URL do web app: https://script.google.com/a/macros/quintoandar.com.br/s/AKfycbNEW123/exec",
+      "expected_output": "Agent runs register with --spreadsheet-url and --web-app-url; latest deployment auto-selected.",
+      "files": [],
+      "expectations": [
+        "Runs or proposes register with --web-app-url (not manual registry edit)",
+        "Uses --spreadsheet-url or asks for spreadsheet URL if missing",
+        "Does not ask user to edit registry.json manually",
+        "Confirms latest deployment will be used for future calls",
+        "Does not instruct the user to run the register command themselves"
+      ]
+    },
+    {
+      "id": 4,
+      "eval_name": "read-before-overwrite",
+      "prompt": "Atualiza meu dashboard financeiro na planilha.",
+      "expected_output": "Agent proposes listSheets + read before blind overwrite; asks if existing content should be replaced.",
+      "files": [],
+      "expectations": [
+        "Proposes listSheets or read before writing",
+        "Asks which tab or clarifies Finance vs other tabs if ambiguous",
+        "Asks before overwriting existing content or proposes a plan",
+        "Uses call with --spreadsheet-url or --payload with read/listSheets",
+        "Does not fire a large batch update without checking existing data"
+      ]
+    },
+    {
+      "id": 5,
+      "eval_name": "batch-column-width",
+      "prompt": "Preenche a linha 1 da aba Finance com estes 7 headers: Metric, Jan, Feb, Mar, Apr, May, Jun",
+      "expected_output": "Range uses A1:G1 (7 columns), not A1:H1.",
+      "files": [],
+      "expectations": [
+        "Uses range A1:G1 or equivalent 7-column range — not A1:H1",
+        "Payload uses update or batch with exactly 7 values",
+        "Includes sheetName Finance when targeting a named tab",
+        "Does not mismatch column count between range and values",
+        "Agent runs CLI — user is not asked to run python"
+      ]
+    },
+    {
+      "id": 6,
+      "eval_name": "no-gcp-default",
+      "prompt": "Preciso criar projeto no GCP ou API token para usar isso?",
+      "expected_output": "No GCP for end users; browser mode is default.",
+      "files": [],
+      "expectations": [
+        "Says end users do not need GCP Console or API tokens",
+        "Browser mode or Playwright session is the default auth path",
+        "OAuth/GCP is optional maintainer setup — not required for the user",
+        "Does not ask user to create OAuth client credentials",
+        "Does not suggest scraping browser cookies or keychain"
+      ]
+    },
+    {
+      "id": 7,
+      "eval_name": "unregistered-spreadsheet",
+      "prompt": "Atualiza o MRR na minha planilha de vendas.",
+      "expected_output": "Agent asks for spreadsheet URL, checks registration, does not call API on unregistered sheet.",
+      "files": [],
+      "expectations": [
+        "Asks for spreadsheet URL or link da planilha before editing",
+        "Mentions the sheet is not connected or needs setup if unregistered",
+        "Does not instruct the user to run terminal commands",
+        "Does not call or pretend to call the sheet without registration",
+        "Offers to connect the sheet in simple language"
+      ]
+    }
+  ]
+}

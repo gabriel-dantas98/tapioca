@@ -40,11 +40,18 @@ tapioca/
 │   │   ├── SKILL.md
 │   │   └── DESIGN.md
 │   └── multi-gen/
-│       ├── SKILL.md          # Entry point
+│       ├── SKILL.md
 │       ├── DESIGN.md
-│       ├── run_engines.py    # Dispatch paralelo + validação
-│       ├── build_preview.py  # HTML comparativo
+│       ├── run_engines.py
+│       ├── build_preview.py
 │       └── tests/smoke_test.py
+│   └── google-sheets-apps-script/
+│       ├── SKILL.md
+│       ├── DESIGN.md
+│       ├── wizard.md
+│       ├── scripts/sheets_agent.py
+│       ├── templates/
+│       └── evals/
 └── agents/
     ├── humanizer-br.md
     └── usabilidade-br.md
@@ -88,6 +95,14 @@ Invocação: `/tapioca:humanizer-br <texto>` ou via menção natural ("humanize 
 2. **Maritaca rewrite** (opcional): Claude faz a **detecção** dos padrões, mas o **rewrite final** é delegado ao modelo `sabia-3` da [Maritaca](https://www.maritaca.ai), treinado em PT-BR. Ativado quando `MARITACA_API_KEY` está no ambiente. Endpoint: `https://chat.maritaca.ai/api/chat/completions`, header `Authorization: Key <token>`.
 
 Ver [`skills/humanizer-br/SKILL.md`](./skills/humanizer-br/SKILL.md) para o catálogo completo de padrões.
+
+### `google-sheets-apps-script`
+
+Automação self-service de **Google Sheets** e **Google Docs** via Apps Script + browser mode (sem GCP pro usuário final). Docs são markdown-first (`appendMarkdown`, tabelas, imagens, abas de doc). Invocação: `/tapioca:google-sheets-apps-script`.
+
+Upstream: [gist v2.6](https://gist.github.com/gabriel-dantas98/6ad86b6bfab840703ec214f228c3004b). Registry: `~/.config/google-sheets-agent/`. Evals comportamentais em `evals/evals.json` + `evals/grade_runs.py`; static smoke em `evals/run_static.py`.
+
+Ver [`skills/google-sheets-apps-script/SKILL.md`](./skills/google-sheets-apps-script/SKILL.md) e [`skills/google-sheets-apps-script/DESIGN.md`](./skills/google-sheets-apps-script/DESIGN.md).
 
 ## Agents
 

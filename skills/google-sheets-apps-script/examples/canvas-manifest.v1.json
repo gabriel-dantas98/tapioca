@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "meta": {
+    "source": "workspace-agent-upload-pipeline.canvas.tsx",
+    "description": "Example manifest for canvas-export (agnostic PNG renderer)"
+  },
+  "layout": {
+    "width": 960,
+    "padding": 32,
+    "theme": "dark"
+  },
+  "header": {
+    "title": "Workspace Agent — upload pipeline",
+    "subtitle": "Canvas → PNG export → Google Doc append · 2026-07-03",
+    "badge": "E2E test"
+  },
+  "stats": [
+    { "label": "Deploy version", "value": "2.5.0", "emphasis": true },
+    { "label": "Share domain", "value": "quintoandar.com.br" },
+    { "label": "Image max width", "value": "120pt" }
+  ],
+  "blocks": [
+    {
+      "type": "table",
+      "title": "Pipeline steps",
+      "trailing": "v2.5.0",
+      "headers": ["Step", "Stage", "Detail"],
+      "rows": [
+        ["1", "Local file", "PNG on disk → base64"],
+        ["2", "CLI upload", "POST web app (v2.5)"],
+        ["3", "My Drive", "createFile + domain share"],
+        ["4", "Google Doc", "appendImage inline"]
+      ]
+    },
+    {
+      "type": "bar_chart",
+      "title": "Recent action latency by feature (integration smoke)",
+      "categories": ["listTabs", "createTab", "renameTab", "upload"],
+      "series": [{ "name": "Latency (s)", "data": [24, 36, 12, 27] }],
+      "valueSuffix": "s",
+      "caption": "Source: local CLI calls · session 2026-07-03"
+    },
+    {
+      "type": "callout",
+      "tone": "success",
+      "title": "Last upload run",
+      "lines": [
+        "Target doc: Claude Test - Skill Evaluation",
+        "Drive file created, shared with org domain, image appended via uploadAndAppendImage."
+      ]
+    },
+    {
+      "type": "tags",
+      "title": "Actions",
+      "items": ["uploadDriveFile", "shareDriveFile", "uploadAndAppendImage", "appendImage"],
+      "footer": "Auxiliary skill: google-drive-upload-for-docs"
+    }
+  ]
+}
