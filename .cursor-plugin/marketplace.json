@@ -6,13 +6,13 @@
     "email": "gabsdevops@gmail.com"
   },
   "metadata": {
-    "description": "Sabores brasileiros para Cursor — skills e agents PT-BR (humanizer-br, usabilidade-br, multi-gen, google-sheets-apps-script)."
+    "description": "We bring the base. You pick the filling. Agent skills for Cursor (humanizer-br, usabilidade-br, multi-gen, google-sheets-apps-script)."
   },
   "plugins": [
     {
       "name": "tapioca",
       "source": "./",
-      "description": "Skills e agents PT-BR: humanizer-br, usabilidade-br, multi-gen, google-sheets-apps-script (Google Sheets/Docs via Apps Script)."
+      "description": "Agent skills and companions: humanizer-br, usabilidade-br, multi-gen, google-sheets-apps-script."
     }
   ]
 }
