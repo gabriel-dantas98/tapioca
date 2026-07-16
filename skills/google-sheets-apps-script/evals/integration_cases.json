@@ -1,0 +1,107 @@
+{
+  "description": "Live CLI integration evals against a registered spreadsheet (browser mode).",
+  "env": {
+    "spreadsheet_url": "GOOGLE_SHEETS_EVAL_SPREADSHEET_URL",
+    "document_url": "GOOGLE_SHEETS_EVAL_DOCUMENT_URL"
+  },
+  "cases": [
+    {
+      "id": "status",
+      "name": "status-ready",
+      "command": ["status"],
+      "assert": {
+        "json_path": "browser_ready",
+        "equals": true
+      }
+    },
+    {
+      "id": "parse",
+      "name": "parse-spreadsheet-url",
+      "command": [
+        "parse",
+        "--spreadsheet",
+        "${GOOGLE_SHEETS_EVAL_SPREADSHEET_URL}"
+      ],
+      "assert": {
+        "json_path": "spreadsheetId",
+        "matches": "^[a-zA-Z0-9-_]{20,}$"
+      }
+    },
+    {
+      "id": "listSheets",
+      "name": "list-sheets",
+      "command": [
+        "call",
+        "--spreadsheet-url",
+        "${GOOGLE_SHEETS_EVAL_SPREADSHEET_URL}",
+        "--payload",
+        "{\"action\":\"listSheets\"}"
+      ],
+      "assert": {
+        "json_path": "result_count",
+        "min": 1
+      }
+    },
+    {
+      "id": "eval-tab-setup",
+      "name": "create-eval-tab",
+      "command": [
+        "call",
+        "--spreadsheet-url",
+        "${GOOGLE_SHEETS_EVAL_SPREADSHEET_URL}",
+        "--payload",
+        "{\"action\":\"createSheet\",\"name\":\"_EvalScratch\",\"tabColor\":\"#6b7280\",\"activate\":true}"
+      ],
+      "assert": {
+        "json_path": "sheetName",
+        "equals": "_EvalScratch",
+        "accept_error_contains": "Sheet already exists"
+      }
+    },
+    {
+      "id": "write-read",
+      "name": "update-read-roundtrip",
+      "command": [
+        "call",
+        "--spreadsheet-url",
+        "${GOOGLE_SHEETS_EVAL_SPREADSHEET_URL}",
+        "--payload",
+        "{\"action\":\"update\",\"sheetName\":\"_EvalScratch\",\"range\":\"A1\",\"value\":\"eval-ok\"}"
+      ],
+      "assert": {
+        "json_path": "range",
+        "equals": "A1"
+      }
+    },
+    {
+      "id": "read-back",
+      "name": "read-eval-cell",
+      "command": [
+        "call",
+        "--spreadsheet-url",
+        "${GOOGLE_SHEETS_EVAL_SPREADSHEET_URL}",
+        "--payload",
+        "{\"action\":\"read\",\"sheetName\":\"_EvalScratch\",\"range\":\"A1\"}"
+      ],
+      "assert": {
+        "json_path": "values.0.0",
+        "equals": "eval-ok"
+      }
+    },
+    {
+      "id": "readDoc",
+      "name": "read-document",
+      "command": [
+        "call",
+        "--document-url",
+        "${GOOGLE_SHEETS_EVAL_DOCUMENT_URL}",
+        "--payload",
+        "{\"action\":\"readDoc\"}"
+      ],
+      "assert": {
+        "json_path": "documentId",
+        "matches": "^[a-zA-Z0-9-_]{20,}$"
+      }
+    }
+  ]
+}

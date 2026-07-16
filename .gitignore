@@ -9,3 +9,9 @@ node_modules/
 tests/evidence/*
 !tests/evidence/README.md
 !tests/evidence/.gitkeep
+
+# google-sheets-apps-script eval artifacts + local eval workspace
+skills/google-sheets-apps-script/evals/latest-results/*
+!skills/google-sheets-apps-script/evals/latest-results/.gitkeep
+skills/google-sheets-apps-script-workspace/
+**/__pycache__/

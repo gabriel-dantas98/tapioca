@@ -42,9 +42,11 @@ for pat in "${PATTERNS[@]}"; do
 done
 
 echo "Padrões detectados pelo agent: $count / ${#PATTERNS[@]}"
-for m in "${matched[@]}"; do
-  echo "  ✓ $m"
-done
+if ((${#matched[@]} > 0)); then
+  for m in "${matched[@]}"; do
+    echo "  ✓ $m"
+  done
+fi
 
 # Verifica uso decorativo de emojis no output.
 # Emojis citados como exemplo dentro da lista de detecção são esperados

@@ -1,7 +1,7 @@
 {
   "name": "tapioca",
-  "description": "Sabores brasileiros para Claude Code: skills e agents PT-BR. Recheios: humanizer-br (remove AI-tells em português), usabilidade-br (auditoria Nielsen com report HTML e fix prompts), multi-gen (dispara CLIs de IA em paralelo pra gerar imagem com comparativo lado a lado).",
-  "version": "0.2.0",
+  "description": "Sabores brasileiros para Claude Code: skills e agents PT-BR. Recheios: humanizer-br, usabilidade-br, multi-gen, google-sheets-apps-script (Google Sheets/Docs via Apps Script).",
+  "version": "0.3.0",
   "author": {
     "name": "Gabriel Dantas",
     "url": "https://gdantas.com.br"
@@ -9,5 +9,5 @@
   "homepage": "https://github.com/gabriel-dantas98/tapioca",
   "repository": "https://github.com/gabriel-dantas98/tapioca",
   "license": "MIT",
-  "keywords": ["pt-br", "portugues", "humanizer", "writing", "editorial", "brasil", "usabilidade", "ux", "nielsen", "heuristics", "audit", "image-generation", "svg", "logo", "multi-engine", "codex", "cursor-agent"]
+  "keywords": ["pt-br", "portugues", "humanizer", "writing", "editorial", "brasil", "usabilidade", "ux", "nielsen", "heuristics", "audit", "image-generation", "svg", "logo", "multi-engine", "codex", "cursor-agent", "google-sheets", "google-docs", "apps-script", "spreadsheet", "planilha"]
 }
