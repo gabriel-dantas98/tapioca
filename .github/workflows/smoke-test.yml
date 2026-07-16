@@ -6,6 +6,7 @@ on:
       - 'skills/**'
       - 'agents/**'
       - '.claude-plugin/**'
+      - '.cursor-plugin/**'
       - 'tests/**'
       - 'scripts/**'
       - '.github/workflows/smoke-test.yml'
@@ -26,7 +27,13 @@ jobs:
       - name: parse manifest
         run: |
           jq -e '.name == "tapioca" and (.version | length > 0)' .claude-plugin/plugin.json
-          echo "manifest OK"
+          echo "plugin.json OK"
+      - name: marketplace manifests present + valid
+        run: |
+          jq -e '.name == "tapioca" and (.plugins | length > 0) and (.plugins[0].source == "./")' .claude-plugin/marketplace.json
+          jq -e '.name == "tapioca" and (.plugins | length > 0) and (.plugins[0].source == "./")' .cursor-plugin/marketplace.json
+          jq -e '.skills == "./skills/" and .agents == "./agents/"' .cursor-plugin/plugin.json
+          echo "marketplace manifests OK"
       - name: skill frontmatter exists
         run: |
           for skill in humanizer-br usabilidade-br multi-gen; do
