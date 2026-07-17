@@ -1,10 +1,12 @@
 # AGENTS.md — tapioca
 
-> Plugin Claude Code com sabor brasileiro. Reúne skills e agents focados em escrita, edição e fluxos editoriais em **português brasileiro**.
+> We bring the base. You pick the filling. / A nossa base, o seu recheio.
+>
+> Plugin de skills e agents para Claude Code e Cursor. A marca é a base; cada skill é um recheio.
 
 ## O que é
 
-`tapioca` é um plugin distribuível (formato [Claude Code Plugin](https://code.claude.com/docs/en/plugins) e [Cursor Plugin](https://cursor.com/docs/reference/plugins)) que empacota skills e agents PT-BR sob um único namespace. O nome é base neutra que recebe recheio — combina com o propósito de hospedar várias capabilities sob a mesma marca.
+`tapioca` é um plugin distribuível (formato [Claude Code Plugin](https://code.claude.com/docs/en/plugins) e [Cursor Plugin](https://cursor.com/docs/reference/plugins)) que empacota skills e agents sob um único namespace. O nome é base neutra que recebe recheio — hospeda várias capabilities (editorial PT-BR, UX, geração de imagem, workspace Google, etc.) sob a mesma marca.
 
 **Cross-platform desde v0.1.** Ambos os manifestos vivem na raiz:
 
@@ -134,17 +136,18 @@ Ambos derivam do [WikiProject AI Cleanup](https://en.wikipedia.org/wiki/Wikipedi
 | Engine de rewrite | Claude | Claude | Claude + **Maritaca sabia-3 opcional** |
 | Companions | SKILL.md | SKILL.md | Skill + **agent multi-pass** |
 | Voice presets | Sim (voice calibration) | Não | Sim |
-| Escopo do repo | Skill única | Skill única | **Plugin extensível** (futuras skills PT-BR) |
+| Escopo do repo | Skill única | Skill única | **Plugin extensível** (fillings além de escrita) |
 
 A licença MIT dos prior arts permite essa derivação; atribuição mantida em `SKILL.md`, `README.md` e neste documento.
 
 ## Convenções
 
-- **PT-BR em tudo que é user-facing.** Comentários internos podem ser PT ou EN, sem mistura no mesmo arquivo.
+- **Superfície do plugin em EN** (README hero, `plugin.json`, marketplace). Bloco PT curto e ok (dual surface).
+- **Nas sessões de skill: match user language.** Fillings de domínio PT-BR (`humanizer-br`, wizard Sheets, etc.) continuam em PT-BR no miolo.
 - **Sem emojis** em SKILL.md, README, ou output da skill (a própria skill detecta emojis decorativos como traço de IA — seria contraditório usá-los).
 - **Aspas retas** (`"`), nunca curvas (`"`).
 - **Headings em sentence case**, nunca Title Case (regra que a própria skill aplica).
-- **kebab-case ASCII** para nomes de skills, agents e arquivos. Nada de `ç`, `ã`, `é`. O nome do plugin (`tapioca`) já obedece.
+- **kebab-case ASCII** para nomes de skills, agents e arquivos. Nada de `ç`, `ã`, `é`. O nome do plugin (`tapioca`) já obedece. Slugs `-br` existentes ficam (sem rename breaking).
 
 ## Distribuição
 
@@ -162,7 +165,5 @@ Submissão aos marketplaces oficiais (Anthropic e Cursor) prevista para v0.2, qu
 
 ## Não-objetivos
 
-- Reescrever conteúdo em **outras línguas** — escopo é PT-BR.
-- Detectar IA **automaticamente** (classificador) — a skill assume que o texto foi gerado por IA ou precisa ser humanizado; não classifica.
-- Substituir editor humano — a skill é assistiva, não autoritativa.
-- Otimizar SEO ou copy de vendas — a meta é voz humana, não conversão.
+- Fazer do plugin um "produto só de português" — PT-BR é domínio de algumas fillings, não a tese da marca.
+- Em `humanizer-br`: reescrever conteúdo em **outras línguas**; detectar IA **automaticamente** (classificador); substituir editor humano; otimizar SEO ou copy de vendas.

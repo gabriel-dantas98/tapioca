@@ -1,50 +1,58 @@
 <p align="center">
-  <img src="./assets/banner.png" alt="tapioca — sabores brasileiros pro Claude Code" width="600" />
+  <img src="./assets/banner.jpg" alt="tapioca — We bring the base. You pick the filling." width="600" />
 </p>
 
 <h1 align="center">tapioca</h1>
 
 <p align="center">
-  <em>Sabores brasileiros para Claude Code — skills e agents PT-BR.</em>
+  <em>We bring the base. You pick the filling.</em>
 </p>
 
 <p align="center">
   <a href="https://github.com/gabriel-dantas98/tapioca/actions"><img src="https://github.com/gabriel-dantas98/tapioca/actions/workflows/smoke-test.yml/badge.svg" alt="smoke tests" /></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT" /></a>
   <img src="https://img.shields.io/badge/plugin-claude--code-orange.svg" alt="claude-code plugin" />
+  <img src="https://img.shields.io/badge/plugin-cursor-blue.svg" alt="cursor plugin" />
 </p>
 
 ---
 
-Plugin distribuível nos formatos [Claude Code Plugin](https://code.claude.com/docs/en/plugins) e [Cursor Plugin](https://cursor.com/docs/reference/plugins). O nome `tapioca` é base neutra — pensada para receber vários recheios ao longo do tempo, todos com foco em PT-BR.
+Distributable plugin for [Claude Code](https://code.claude.com/docs/en/plugins) and [Cursor](https://cursor.com/docs/reference/plugins). `tapioca` is a neutral base — you add fillings (skills + companion agents) under one namespace.
 
-## Skills incluídas
+<details>
+<summary><strong>PT</strong> — A nossa base, o seu recheio.</summary>
+
+Plugin com skills e agents sob o namespace `tapioca`. A marca é a base; cada skill é um recheio. Algumas fillings são de domínio PT-BR (ex.: `humanizer-br`); outras são agnósticas (ex.: `multi-gen`, `google-sheets-apps-script`).
+
+</details>
+
+## Included skills
 
 ### `/tapioca:multi-gen`
 
-Dispara vários CLIs de IA em paralelo (mínimo `codex` e `cursor-agent`) a partir de um briefing de imagem, valida cada saída (SVG bem-formado) e monta um preview HTML comparativo com painel claro, escuro e tira de favicons (16/32/48/180px) pra escolher o vencedor antes do refino manual.
+Runs multiple AI CLIs in parallel (at least `codex` and `cursor-agent`) from an image briefing, validates each artifact (well-formed SVG), and builds a comparative HTML preview (light + dark + favicon strip at 16/32/48/180px) so you can pick a winner before manual polish.
 
-- Dispatch paralelo com timeout portável (macOS sem `gtimeout`)
-- Pré-check de auth do `cursor-agent` (vira SKIP em vez de travar)
-- Extração robusta do `<svg>` quando o CLI mistura log na stdout
-- Saída por engine: `raw.txt`, `out.<ext>`, `status.json` no run-dir
+- Portable parallel dispatch (macOS without `gtimeout`)
+- Auth pre-check for `cursor-agent` (SKIP instead of hanging)
+- Robust `<svg>` extraction when CLI stdout mixes logs
+- Per-engine output: `raw.txt`, `out.<ext>`, `status.json` in the run dir
 
 ```text
-/tapioca:multi-gen "logo geometrico p/ Novarum, paleta azul" --palette "#2E5BFF,#FFFFFF"
+/tapioca:multi-gen "geometric logo for Novarum, blue palette" --palette "#2E5BFF,#FFFFFF"
 ```
 
-Compõe com a skill `preview-server` (do control-plane) pra servir o `index.html`.
+Pairs with a `preview-server` skill (control-plane) to serve `index.html`.
 
 ### `/tapioca:usabilidade-br`
 
-Audita usabilidade de apps web contra as 10 heurísticas de Jakob Nielsen. Captura evidência via Chrome MCP, opcionalmente correlaciona com código fonte (`--code <path>`) e gera um HTML report local self-contained com:
+Audits web app usability against Jakob Nielsen's 10 heuristics. Captures evidence via Chrome MCP, optionally correlates with source (`--code <path>`), and writes a local self-contained HTML report with:
 
-- Score geral (0–100) e por heurística
-- Evidência visual (screenshots embutidas)
-- Snippet de código com `file:line` quando o componente é localizado
-- **Fix prompt copiável** por violação — pronto pra colar em outro Claude Code
+- Overall score (0–100) and per-heuristic scores
+- Visual evidence (embedded screenshots)
+- Code snippets with `file:line` when the component is found
+- **Copyable fix prompt** per violation — paste into another Claude Code session
 
-Companion agent paraleliza 10 passes (um por heurística) e monta o relatório.
+Companion agent parallelizes 10 passes (one per heuristic) and builds the report.
 
 ```text
 /tapioca:usabilidade-br http://localhost:3000 --code ./src
@@ -52,17 +60,17 @@ Companion agent paraleliza 10 passes (um por heurística) e monta o relatório.
 
 ### `/tapioca:humanizer-br`
 
-Remove traços de escrita gerada por IA em PT-BR e injeta voz humana real. Catálogo de 25+ padrões: linguagem promocional, gerúndios empilhados, paralelismo negativo, regra dos três, Title Case herdado do inglês, aspas curvas, ganchos dramáticos, rastros de chatbot, e mais.
+Removes AI writing tells from Brazilian Portuguese and injects a human voice. Catalog of 25+ patterns: promotional tone, stacked gerunds, negative parallelism, rule of three, English-style Title Case, curly quotes, dramatic hooks, chatbot residue, and more.
 
-**Modos:**
-- Claude puro (padrão): roda na própria sessão, custo zero.
-- Maritaca opcional: delega rewrite ao modelo `sabia-3`, treinado em PT-BR nativo. Ativado quando `MARITACA_API_KEY` está no ambiente.
+**Modes:**
+- Claude-only (default): runs in-session, zero extra cost.
+- Optional Maritaca: delegates rewrite to `sabia-3` (native PT-BR). Enabled when `MARITACA_API_KEY` is set.
 
-Companion: agent `humanizer-br` (em `agents/`) que faz multi-pass com autoavaliação.
+Companion: `humanizer-br` agent (under `agents/`) for multi-pass with self-scoring.
 
 ### `/tapioca:google-sheets-apps-script`
 
-Automação de Google Sheets e Google Docs via Apps Script (browser mode — sem GCP pro usuário). Docs são markdown-first. O agent roda o CLI; o usuário cola links e confirma na UI do Google.
+Google Sheets and Google Docs automation via Apps Script (browser mode — no GCP for the end user). Docs are markdown-first. The agent runs the CLI; the user pastes links and confirms in Google's UI.
 
 ```text
 /tapioca:google-sheets-apps-script
@@ -70,7 +78,7 @@ Automação de Google Sheets e Google Docs via Apps Script (browser mode — sem
 
 Upstream: [gist v2.6](https://gist.github.com/gabriel-dantas98/6ad86b6bfab840703ec214f228c3004b).
 
-## Instalação
+## Install
 
 ### Claude Code
 
@@ -78,7 +86,7 @@ Upstream: [gist v2.6](https://gist.github.com/gabriel-dantas98/6ad86b6bfab840703
 git clone https://github.com/gabriel-dantas98/tapioca ~/.claude/plugins/tapioca
 ```
 
-Reinicie o Claude Code ou rode `/reload-plugins`.
+Restart Claude Code or run `/reload-plugins`.
 
 ### Cursor
 
@@ -86,88 +94,87 @@ Reinicie o Claude Code ou rode `/reload-plugins`.
 git clone https://github.com/gabriel-dantas98/tapioca ~/.cursor/plugins/tapioca
 ```
 
-O repo carrega manifestos para ambas as plataformas (`.claude-plugin/plugin.json` e `.cursor-plugin/plugin.json`) com a mesma `skills/` e `agents/` por baixo.
+The repo ships manifests for both platforms (`.claude-plugin/plugin.json` and `.cursor-plugin/plugin.json`) over the same `skills/` and `agents/`.
 
-### Via --plugin-dir (desenvolvimento, Claude Code)
+### Via --plugin-dir (Claude Code, local dev)
 
 ```bash
-claude --plugin-dir /caminho/para/tapioca
+claude --plugin-dir /path/to/tapioca
 ```
 
-### Teste local (marketplace + dual-CLI)
+### Local smoke (marketplace + dual-CLI)
 
-Harness em `.agents/skills/smoke-test-skills/` — mesma fonte que o CI:
+Harness in `.agents/skills/smoke-test-skills/` — same source as CI:
 
 ```bash
 .agents/skills/smoke-test-skills/run.sh marketplace                 # token-free
-.agents/skills/smoke-test-skills/run.sh oneshot humanizer-br both   # consome token
+.agents/skills/smoke-test-skills/run.sh oneshot humanizer-br both   # uses tokens
 .agents/skills/smoke-test-skills/run.sh all humanizer-br both
 ```
 
-Cursor IDE: o harness cria `~/.cursor/plugins/local/tapioca` (symlink). Depois: Developer → Reload Window.
+Cursor IDE: the harness creates `~/.cursor/plugins/local/tapioca` (symlink). Then: Developer → Reload Window.
 
-## Uso
-
-```text
-/tapioca:humanizer-br Cole aqui o texto pra humanizar.
-```
-
-Ou em linguagem natural:
+## Usage
 
 ```text
-Humaniza esse texto pra mim, tira o cheiro de IA.
+/tapioca:humanizer-br Paste the text to humanize here.
 ```
 
-Para revisão "séria" (multi-pass), o Claude vai invocar o agent companion automaticamente.
+Or natural language:
 
-### Modo Maritaca
+```text
+Humanize this text, strip the AI smell.
+```
+
+For a serious multi-pass review, the companion agent is invoked automatically.
+
+### Maritaca mode
 
 ```bash
-export MARITACA_API_KEY="sua-chave-aqui"
+export MARITACA_API_KEY="your-key-here"
 ```
 
-A skill detecta a variável e oferece o modo Maritaca quando o texto justifica (longo o suficiente, qualidade pedida explicitamente).
+The skill detects the env var and offers Maritaca when the text justifies it (long enough, or quality explicitly requested).
 
-## Estrutura
+## Layout
 
 ```text
 tapioca/
 ├── .claude-plugin/plugin.json
+├── .cursor-plugin/plugin.json
 ├── AGENTS.md
 ├── CLAUDE.md
 ├── README.md
 ├── skills/
-│   └── humanizer-br/SKILL.md
+│   ├── humanizer-br/
+│   ├── usabilidade-br/
+│   ├── multi-gen/
+│   └── google-sheets-apps-script/
 └── agents/
-    └── humanizer-br.md
+    ├── humanizer-br.md
+    └── usabilidade-br.md
 ```
 
 ## Roadmap
 
-| Versão | Conteúdo |
+| Version | Content |
 |---|---|
-| **v0.1** | `humanizer-br` (skill + agent), formato de plugin, AGENTS.md |
-| v0.2 | Skill `editor-br` (revisão geral de PT-BR — concordância, regência, regionalismos) |
-| v0.3 | Skill `roteirista-br` (roteiros falados, transcrições, podcasts) |
-| v0.4 | Submissão ao marketplace oficial Anthropic |
+| **v0.1** | `humanizer-br` (skill + agent), plugin format, AGENTS.md |
+| **v0.2** | `usabilidade-br`, `multi-gen` |
+| **v0.3** | `google-sheets-apps-script`, marketplace manifests |
+| next | More fillings; official marketplace submissions |
 
-Sem hooks, MCP ou LSP no curto prazo. Foco em **skills e agents** até a coleção justificar mais.
+No hooks, MCP, or LSP in the short term. Skills and agents until the collection justifies more.
 
-## Crédito
+## Credit
 
-A skill `humanizer-br` descende de duas linhagens:
+`humanizer-br` descends from:
 
-- [blader/humanizer](https://github.com/blader/humanizer) (MIT, ~19k stars) — humanizer canônico **em inglês** para Claude Code e OpenCode. Estabeleceu o padrão skill + voice calibration que esta skill estende.
-- [mackswendhell/humanizer-pt-br](https://github.com/mackswendhell/humanizer-pt-br) (MIT, 2026) — primeira adaptação direta do catálogo do WikiProject AI Cleanup para **PT-BR**.
+- [blader/humanizer](https://github.com/blader/humanizer) (MIT) — canonical English humanizer for Claude Code / OpenCode.
+- [mackswendhell/humanizer-pt-br](https://github.com/mackswendhell/humanizer-pt-br) (MIT, 2026) — first direct WikiProject AI Cleanup adaptation to PT-BR.
 
-Diferenciais do `tapioca`:
+What `tapioca` adds: namespaced plugin, Claude Code + Cursor, optional Maritaca `sabia-3`, multi-pass companion agents, and room for fillings beyond writing.
 
-- **Plugin namespaceado** (não skill standalone): `/tapioca:humanizer-br`
-- **Cross-platform** desde v0.1: Claude Code e Cursor
-- **Engine PT-BR nativa opcional** (Maritaca `sabia-3`) além do default Claude
-- **Agent companion** com multi-pass e autoavaliação
-- **Voice presets** explicitamente documentados
+## License
 
-## Licença
-
-MIT — ver `LICENSE`.
+MIT — see `LICENSE`.

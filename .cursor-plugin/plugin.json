@@ -1,6 +1,6 @@
 {
   "name": "tapioca",
-  "description": "Sabores brasileiros para Cursor: skills e agents PT-BR. Recheios: humanizer-br, usabilidade-br, multi-gen, google-sheets-apps-script (Google Sheets/Docs via Apps Script).",
+  "description": "We bring the base. You pick the filling. Agent skills and companions for Cursor — fillings include humanizer-br, usabilidade-br, multi-gen, google-sheets-apps-script.",
   "version": "0.3.0",
   "author": {
     "name": "Gabriel Dantas",
@@ -9,7 +9,7 @@
   "homepage": "https://github.com/gabriel-dantas98/tapioca",
   "repository": "https://github.com/gabriel-dantas98/tapioca",
   "license": "MIT",
-  "keywords": ["pt-br", "portugues", "humanizer", "writing", "editorial", "brasil", "usabilidade", "ux", "nielsen", "heuristics", "audit", "image-generation", "svg", "logo", "multi-engine", "codex", "cursor-agent", "google-sheets", "google-docs", "apps-script", "spreadsheet", "planilha"],
+  "keywords": ["agent-skills", "claude-code", "cursor", "humanizer", "writing", "editorial", "usabilidade", "ux", "nielsen", "heuristics", "audit", "image-generation", "svg", "logo", "multi-engine", "codex", "cursor-agent", "google-sheets", "google-docs", "apps-script", "spreadsheet"],
   "skills": "./skills/",
   "agents": "./agents/"
 }
