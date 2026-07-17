@@ -33,14 +33,12 @@ The plugin already ships mixed capabilities (editorial PT-BR, UX audit, multi-en
 
 ## Visual
 
-**Concept A — soft mass with embedded fillings**
+**Hero image:** food photo of three folded tapiocas with different fillings (user-provided). Literal metaphor for base + fillings; warm wooden board, natural light.
 
-- Soft 3D clay/dough base with subsurface + contact shadow.
-- Colored solids partially buried = fillings.
-- Palette: off-white / charcoal + dry terracotta + muted teal.
-- Forbidden: Brazilian flag colors as identity, purple AI glow, flat 2D sticker shapes as the hero.
-- Asset: `assets/banner.jpg` (README `./assets/banner.jpg`).
-- Wordmark is typographic in README; banner is illustration-led (text optional on image).
+- Asset: `assets/banner.jpg` (~1024×640 JPEG, optimized).
+- Wordmark is typographic in README; banner carries the metaphor without overlaid text.
+
+*(Earlier concept A — soft clay mass — was explored and replaced by this photo per product owner preference.)*
 
 ## Out of scope
 
