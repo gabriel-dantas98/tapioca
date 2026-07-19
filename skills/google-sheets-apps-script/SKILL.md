@@ -302,6 +302,7 @@ bash .../scripts/clasp_bootstrap.sh --spreadsheet-url "..." --script-id "..." --
 
 | File | Purpose |
 |------|---------|
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Team-facing deep dive — architecture, dependencies, onboarding/daily-use flows (Mermaid, PT-BR) |
 | [wizard.md](wizard.md) | Non-technical onboarding messages |
 | [templates/Code.gs](templates/Code.gs) | Apps Script v1.2.0+ |
 | [scripts/setup.sh](scripts/setup.sh) | Fresh machine deps |

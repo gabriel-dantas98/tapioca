@@ -71,6 +71,7 @@ python3 "$CLI" canvas-export --manifest report.canvas.json
 | Path | Purpose |
 |------|---------|
 | `SKILL.md` | Agent instructions |
+| `ARCHITECTURE.md` | Team-facing deep dive — architecture, dependencies, onboarding/daily-use flows (Mermaid diagrams, PT-BR) |
 | `wizard.md` | Non-technical onboarding (PT-BR) |
 | `reference.md` | Sheets actions + troubleshooting |
 | `docs-reference.md` | Docs markdown / tables / images / upload |
