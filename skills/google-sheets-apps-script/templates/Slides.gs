@@ -14,7 +14,7 @@ function isSlidesRequest_(req) {
 function isSlidesAction_(action) {
   return [
     'listSlides', 'getSlide', 'createSlide', 'duplicateSlide', 'deleteSlide',
-    'moveSlide', 'replaceText', 'appendTextBox', 'insertShape', 'insertImage',
+    'moveSlide', 'replaceText', 'appendTextBox', 'styleText', 'insertShape', 'insertImage',
     'setBackground', 'copySlide'
   ].indexOf(action) !== -1;
 }
@@ -43,6 +43,7 @@ function dispatchSlides_(presentation, req) {
     case 'moveSlide': return moveSlide_(presentation, req);
     case 'replaceText': return replaceText_(presentation, req);
     case 'appendTextBox': return appendTextBox_(presentation, req);
+    case 'styleText': return styleText_(presentation, req);
     case 'insertShape': return insertShape_(presentation, req);
     case 'insertImage': return insertImage_(presentation, req);
     case 'setBackground': return setBackground_(presentation, req);
@@ -172,6 +173,30 @@ function appendTextBox_(presentation, req) {
   if (style.bold !== undefined) textStyle.setBold(style.bold);
   if (style.italic !== undefined) textStyle.setItalic(style.italic);
   return { objectId: shape.getObjectId(), slideId: slide.getObjectId() };
+}
+
+function styleText_(presentation, req) {
+  require_(req.objectId, 'objectId');
+  var slide = slideAt_(presentation, req);
+  var elements = slide.getPageElements();
+  var element = null;
+  for (var i = 0; i < elements.length; i++) {
+    if (elements[i].getObjectId() === req.objectId) {
+      element = elements[i];
+      break;
+    }
+  }
+  if (!element || element.getPageElementType() !== SlidesApp.PageElementType.SHAPE) {
+    throw new Error('Text shape not found: ' + req.objectId);
+  }
+  var style = req.style || {};
+  var textStyle = element.asShape().getText().getTextStyle();
+  if (style.fontSize !== undefined) textStyle.setFontSize(style.fontSize);
+  if (style.fontFamily) textStyle.setFontFamily(style.fontFamily);
+  if (style.foregroundColor) textStyle.setForegroundColor(style.foregroundColor);
+  if (style.bold !== undefined) textStyle.setBold(style.bold);
+  if (style.italic !== undefined) textStyle.setItalic(style.italic);
+  return { objectId: element.getObjectId(), slideId: slide.getObjectId(), applied: style };
 }
 
 function insertShape_(presentation, req) {

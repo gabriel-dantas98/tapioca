@@ -253,7 +253,7 @@ Inspect an existing deck before writing: `listSlides`, then `getSlide`. Coordina
 | `listSlides` / `getSlide` | inspect the deck and its elements |
 | `createSlide` / `duplicateSlide` / `moveSlide` / `deleteSlide` | manage slides; confirm delete |
 | `replaceText` | replace text in one slide or the entire deck |
-| `appendTextBox` / `insertShape` / `insertImage` / `setBackground` | add and style basic content |
+| `appendTextBox` / `styleText` / `insertShape` / `insertImage` / `setBackground` | add and style basic content |
 | `copySlide` | copy a slide from another deck, retaining master/layout/assets (`sourcePresentationId` or `sourcePresentationUrl`) |
 | `batch` | group actions against one presentation |
 
