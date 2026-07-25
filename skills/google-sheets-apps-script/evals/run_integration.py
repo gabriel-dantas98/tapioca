@@ -30,10 +30,12 @@ OUT_DIR = Path(__file__).resolve().parent / "latest-results"
 def expand_command(cmd: list[str]) -> list[str]:
     sheet_url = os.environ.get("GOOGLE_SHEETS_EVAL_SPREADSHEET_URL", "")
     doc_url = os.environ.get("GOOGLE_SHEETS_EVAL_DOCUMENT_URL", "")
+    presentation_url = os.environ.get("GOOGLE_SHEETS_EVAL_PRESENTATION_URL", "")
     out = []
     for part in cmd:
         part = part.replace("${GOOGLE_SHEETS_EVAL_SPREADSHEET_URL}", sheet_url)
         part = part.replace("${GOOGLE_SHEETS_EVAL_DOCUMENT_URL}", doc_url)
+        part = part.replace("${GOOGLE_SHEETS_EVAL_PRESENTATION_URL}", presentation_url)
         out.append(part)
     return out
 
@@ -59,6 +61,15 @@ def json_path(data: dict | list, path: str):
 
 
 def run_case(case: dict) -> dict:
+    required_env = case.get("requires_env")
+    if required_env and not os.environ.get(required_env, "").strip():
+        return {
+            "id": case["id"],
+            "name": case["name"],
+            "passed": True,
+            "optional": case.get("optional", False),
+            "skipped": f"{required_env} is not set",
+        }
     cmd = ["python3", str(CLI), *expand_command(case["command"])]
     proc = subprocess.run(cmd, capture_output=True, text=True)
     result = {
@@ -141,6 +152,7 @@ def main() -> None:
             "type": "integration",
             "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
             "spreadsheet_url": url,
+            "presentation_url": os.environ.get("GOOGLE_SHEETS_EVAL_PRESENTATION_URL", ""),
             "strict": strict,
         },
         "summary": {

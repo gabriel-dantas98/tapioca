@@ -2,9 +2,9 @@
 
 ## Goal
 
-Automatizar Google Sheets e Google Docs para usuários não técnicos via Apps Script + browser mode (sem GCP pro usuário final). O agent roda todo o terminal; o usuário só abre links, clica na UI do Google e cola URLs.
+Automatizar Google Sheets, Google Docs e Google Slides para usuários não técnicos via Apps Script + browser mode (sem GCP pro usuário final). O agent roda todo o terminal; o usuário só abre links, clica na UI do Google e cola URLs.
 
-Docs são **markdown-first** (`appendMarkdown`, tabelas, imagens, abas de doc). Sheets cobre CRUD de células, estilo, comentários, abas e batch.
+Docs são **markdown-first** (`appendMarkdown`, tabelas, imagens, abas de doc). Sheets cobre CRUD de células, estilo, comentários, abas e batch. Slides cobre inspeção, CRUD/reordenação, texto, imagens, backgrounds e cópia entre decks.
 
 ## Non-goals
 
@@ -15,14 +15,14 @@ Docs são **markdown-first** (`appendMarkdown`, tabelas, imagens, abas de doc). 
 
 ## Inputs
 
-- URL completa de planilha (`/spreadsheets/d/...`) ou documento (`/document/d/...`).
-- Payload JSON por action (`read`, `update`, `appendMarkdown`, `listDocTabs`, etc.).
+- URL completa de planilha (`/spreadsheets/d/...`), documento (`/document/d/...`) ou apresentação (`/presentation/d/...`).
+- Payload JSON por action (`read`, `update`, `appendMarkdown`, `listDocTabs`, `copySlide`, etc.).
 - Arquivos locais para `upload` ou manifest para `canvas-export`.
 
 ## Outputs
 
 - Respostas JSON do web app Apps Script via `sheets_agent.py call`.
-- Registry em `~/.config/google-sheets-agent/registry.json` (deployments registrados).
+- Registry em `~/.config/google-sheets-agent/registry.json` (deployments de planilhas, documentos e apresentações registrados).
 - PNG de canvas-export; imagens no Drive/Docs após upload.
 
 ## Voice/Tone
@@ -31,7 +31,7 @@ Wizard e mensagens ao usuário: **PT-BR coloquial**, uma pergunta por turno, sem
 
 ## Distribution
 
-- **Upstream:** gist https://gist.github.com/gabriel-dantas98/6ad86b6bfab840703ec214f228c3004b (v2.6.0)
+- **Upstream:** gist https://gist.github.com/gabriel-dantas98/6ad86b6bfab840703ec214f228c3004b (v3.0.0)
 - **tapioca:** `skills/google-sheets-apps-script/` — invoke `/tapioca:google-sheets-apps-script`
 - CLI resolve `SKILL_DIR` via `Path(__file__).parents[1]` — funciona em qualquer install path
 

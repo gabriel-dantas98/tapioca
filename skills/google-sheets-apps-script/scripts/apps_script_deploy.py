@@ -45,6 +45,7 @@ def load_project_files() -> list[dict]:
         {"name": "Docs", "type": "SERVER_JS", "source": (templates / "Docs.gs").read_text(encoding="utf-8")},
         {"name": "MarkdownDoc", "type": "SERVER_JS", "source": (templates / "MarkdownDoc.gs").read_text(encoding="utf-8")},
         {"name": "CommentsDoc", "type": "SERVER_JS", "source": (templates / "CommentsDoc.gs").read_text(encoding="utf-8")},
+        {"name": "Slides", "type": "SERVER_JS", "source": (templates / "Slides.gs").read_text(encoding="utf-8")},
         {"name": "appsscript", "type": "JSON", "source": MANIFEST.read_text(encoding="utf-8")},
     ]
 

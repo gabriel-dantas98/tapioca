@@ -11,10 +11,14 @@
 
 /** Run once in Apps Script editor after upgrading to v2 (grants Docs scope). */
 function authorizeWorkspace() {
-  SpreadsheetApp.getActiveSpreadsheet().getName();
-  DocumentApp.create('authorize-workspace-temp').setTrashed(true);
+  var spreadsheet = SpreadsheetApp.create('authorize-workspace-temp');
+  spreadsheet.getId();
+  DriveApp.getFileById(spreadsheet.getId()).setTrashed(true);
+  var document = DocumentApp.create('authorize-workspace-temp');
+  DriveApp.getFileById(document.getId()).setTrashed(true);
+  var presentation = SlidesApp.create('authorize-workspace-temp');
+  DriveApp.getFileById(presentation.getId()).setTrashed(true);
   UrlFetchApp.fetch('https://www.google.com/generate_204');
-  DriveApp.getFileById(SpreadsheetApp.getActiveSpreadsheet().getId()).getName();
   return { ok: true, message: 'Workspace scopes authorized' };
 }
 
@@ -31,6 +35,9 @@ function runApi(payloadJson) {
   }
   if (isDocRequest_(req)) {
     return runDocApi_(req);
+  }
+  if (isSlidesRequest_(req)) {
+    return runSlidesApi_(req);
   }
   const ctx = resolveContext_(req);
 
@@ -51,10 +58,10 @@ function doGet(e) {
   if (!encoded) {
     return respond_({
       ok: true,
-      version: '2.6.0',
+      version: '3.0.0',
       entrypoint: 'runApi',
       mode: 'browser-get',
-      targets: ['spreadsheet', 'document'],
+      targets: ['spreadsheet', 'document', 'presentation'],
       sheetActions: [
         'read', 'create', 'update', 'delete', 'style', 'comment', 'batch',
         'listSheets', 'createSheet', 'renameSheet', 'deleteSheet', 'tabColor',
@@ -66,6 +73,11 @@ function doGet(e) {
         'resolveDocComment', 'appendMarkdown', 'appendTable',
         'appendImage', 'uploadAndAppendImage', 'batch',
         'listDocTabs', 'createDocTab', 'renameDocTab',
+      ],
+      slidesActions: [
+        'listSlides', 'getSlide', 'createSlide', 'duplicateSlide', 'deleteSlide',
+        'moveSlide', 'replaceText', 'appendTextBox', 'insertImage',
+        'setBackground', 'copySlide', 'batch',
       ],
     });
   }

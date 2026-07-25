@@ -1,6 +1,6 @@
-# Google Sheets & Docs Agent — Cursor + Claude Code Skill
+# Google Workspace Agent — Cursor + Claude Code Skill
 
-Self-service **Google Sheets** and **Google Docs** automation via Apps Script (browser mode, no GCP for end users). Docs content is **Markdown-first** (`appendMarkdown`, tables, images, doc tabs).
+Self-service **Google Sheets**, **Google Docs**, and **Google Slides** automation via Apps Script (browser mode, no GCP for end users). Docs content is **Markdown-first**; Slides supports deck inspection, template copying, text, images, backgrounds, and slide management.
 
 ## Install
 
@@ -28,7 +28,7 @@ Gist files use **flat names** (`templates-Code.gs`, `docs-reference.md`, …). `
 
 Both Cursor and Claude Code use:
 
-- `~/.config/google-sheets-agent/registry.json` — registered spreadsheets/docs + deployments
+- `~/.config/google-sheets-agent/registry.json` — registered spreadsheets/docs/presentations + deployments
 - `~/.config/google-sheets-agent/browser-profile/` — Google login for browser mode
 
 Register once in either IDE; the other picks up the same deployments.
@@ -59,6 +59,7 @@ CLI="$HOME/.cursor/skills/google-sheets-apps-script/scripts/sheets_agent.py"
 # CLI="$HOME/.claude/skills/google-sheets-apps-script/scripts/sheets_agent.py"
 
 python3 "$CLI" status --document-url "https://docs.google.com/document/d/.../edit"
+python3 "$CLI" status --presentation-url "https://docs.google.com/presentation/d/.../edit"
 python3 "$CLI" browser-auth
 python3 "$CLI" call --document-url "..." --payload '{"action":"listDocTabs"}'
 python3 "$CLI" call --document-url "..." --payload '{"action":"createDocTab","name":"New Tab"}'
@@ -76,7 +77,7 @@ python3 "$CLI" canvas-export --manifest report.canvas.json
 | `reference.md` | Sheets actions + troubleshooting |
 | `docs-reference.md` | Docs markdown / tables / images / upload |
 | `canvas-export-reference.md` | Manifest → PNG (decoupled) |
-| `templates/` | Apps Script v2.6 |
+| `templates/` | Apps Script v3.0 |
 | `scripts/sheets_agent.py` | Browser/OAuth CLI |
 | `scripts/canvas_export/` | Agnostic PNG export |
 | `evals/` | Static + integration evals |
@@ -91,4 +92,4 @@ Gist: https://gist.github.com/gabriel-dantas98/6ad86b6bfab840703ec214f228c3004b
 
 ## Version
 
-**v2.6.0** — Doc tabs (`listDocTabs`, `createDocTab`, `appendMarkdown` + `tabId`), Drive upload, canvas-export, native comments, shared deploy for Sheets + Docs.
+**v3.0.0** — Google Slides support: deck inspection, slide CRUD/reordering, text/image/background editing, replacement, and cross-deck template copying.

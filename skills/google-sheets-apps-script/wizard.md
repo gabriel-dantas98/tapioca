@@ -26,7 +26,7 @@ If skill folder missing → reinstall tapioca plugin or install from [gist](http
 | Planilha integrada | `status --spreadsheet-url URL` → `registered` | Can edit without wizard |
 | clasp disponível | `status` → `clasp_logged_in` | Agent can deploy script automatically |
 
-**Any edit request on unregistered sheet → start wizard at step matching state.**
+**Any edit request on an unregistered Workspace file → start wizard at step matching state.**
 
 ---
 
@@ -189,12 +189,34 @@ Agent opens Apps Script, runs `authorizeWorkspace`, accepts OAuth. User does not
 
 ---
 
+## Google Slides onboarding
+
+Same flow as Sheets, but user pastes a **link da apresentação** (`/presentation/d/...`).
+
+```bash
+python3 .../sheets_agent.py status --presentation-url "URL"
+python3 .../sheets_agent.py register --presentation-url "URL" --web-app-url "..." --script-id "..."
+```
+
+**Shared deploy (recommended):** a registered Workspace Apps Script deployment can edit any presentation the user can access. Register the presentation URL against that same `/exec`.
+
+**Deck-bound script:** user opens the presentation → **Extensões → Apps Script** once; then the agent runs:
+
+```bash
+bash .../scripts/clasp_bootstrap.sh --presentation-url "..." --script-id "..."
+```
+
+**Test after setup:** run `listSlides`; do not create or delete slides merely to test an existing deck.
+
+---
+
 ## Error → user message
 
 | Error | Tell user |
 |-------|-----------|
 | Google login required | "Sessão expirou — vou abrir o Google de novo." → `browser-auth` |
 | DocumentApp permission | "Preciso autorizar Google Docs no script." → `authorize --auto` then retry |
+| SlidesApp permission | "Preciso autorizar Google Slides no script." → `authorize --auto` then retry |
 | respond_ / Unknown action | "Preciso atualizar o script na planilha." → clasp_bootstrap or manual 2b |
 | Web app not found | "Link do deploy inválido — cola o `/exec` de novo ou eu redeployo." |
 | Sheet already exists | "Já existe uma aba com esse nome — uso ela ou crio outro nome?" |

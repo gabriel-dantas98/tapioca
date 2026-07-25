@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Self-service CLI for Google Sheets via Apps Script (browser or OAuth modes)."""
+"""Self-service CLI for Google Sheets, Docs, and Slides via Apps Script."""
 
 from __future__ import annotations
 
@@ -39,6 +39,7 @@ SCOPES = [
     "https://www.googleapis.com/auth/script.deployments",
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/documents",
+    "https://www.googleapis.com/auth/presentations",
     "https://www.googleapis.com/auth/drive.file",
 ]
 OAUTH_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
@@ -96,6 +97,20 @@ DOC_ACTIONS = {
     "docComment",
     "docReplyComment",
     "docResolveComment",
+}
+
+SLIDES_ACTIONS = {
+    "listSlides",
+    "getSlide",
+    "createSlide",
+    "duplicateSlide",
+    "deleteSlide",
+    "moveSlide",
+    "replaceText",
+    "appendTextBox",
+    "insertImage",
+    "setBackground",
+    "copySlide",
 }
 
 DRIVE_UPLOAD_ACTIONS = {"uploadDriveFile", "shareDriveFile"}
@@ -246,6 +261,36 @@ def require_oauth_creds() -> tuple[dict, dict]:
 def cmd_bootstrap(args: argparse.Namespace) -> None:
     client, creds = require_oauth_creds()
     registry = load_registry()
+
+    if args.presentation_url:
+        parent_id = parse_presentation_id(args.presentation_url)
+        resource = registry.get("presentations", {}).get(parent_id, {})
+        label = args.label or resource.get("label") or "Slides Agent"
+        deployment_id = args.deployment_id or (
+            resource.get("latestDeploymentId") if args.update_only else None
+        )
+        result = bootstrap_script(
+            creds["access_token"],
+            parent_id=parent_id,
+            script_id=args.script_id
+            or (parse_script_id(args.script_ref) if args.script_ref else resource.get("scriptId")),
+            label=label,
+            deployment_id=deployment_id,
+            create_project=args.create_project or not resource.get("scriptId"),
+        )
+        deployment = upsert_presentation_deployment(
+            registry,
+            presentation_id=parent_id,
+            script_id=result["scriptId"],
+            deployment_id=result["deploymentId"],
+            web_app_url=result["webAppUrl"],
+            label=label,
+            domain=args.domain or resource.get("domain", ""),
+            presentation_url=args.presentation_url,
+        )
+        save_registry(registry)
+        print(json.dumps({**result, "presentationId": parent_id, "registered": True, "deployment": deployment}, indent=2))
+        return
 
     if args.document_url:
         parent_id = parse_document_id(args.document_url)
@@ -410,9 +455,13 @@ def parse_browser_response(text: str):
 
 
 def load_registry() -> dict:
-    registry = load_json(REGISTRY_PATH, {"spreadsheets": {}, "documents": {}, "deployments": {}})
+    registry = load_json(
+        REGISTRY_PATH,
+        {"spreadsheets": {}, "documents": {}, "presentations": {}, "deployments": {}},
+    )
     registry.setdefault("spreadsheets", {})
     registry.setdefault("documents", {})
+    registry.setdefault("presentations", {})
     registry.setdefault("deployments", {})
     migrate_registry_(registry)
     return registry
@@ -531,6 +580,57 @@ def upsert_document_deployment(
     return deployment
 
 
+def upsert_presentation_deployment(
+    registry: dict,
+    *,
+    presentation_id: str,
+    script_id: str,
+    deployment_id: str,
+    web_app_url: str,
+    label: str,
+    domain: str,
+    presentation_url: str,
+) -> dict:
+    now = int(time.time())
+    presentation = registry["presentations"].setdefault(
+        presentation_id,
+        {
+            "scriptId": script_id,
+            "label": label or presentation_id,
+            "domain": domain,
+            "presentationUrl": presentation_url,
+            "latestDeploymentId": deployment_id,
+            "latestWebAppUrl": web_app_url,
+            "latestRegisteredAt": now,
+            "deployments": {},
+        },
+    )
+    presentation["scriptId"] = script_id or presentation.get("scriptId", "")
+    presentation["label"] = label or presentation.get("label", presentation_id)
+    presentation["domain"] = domain or presentation.get("domain", "")
+    if presentation_url:
+        presentation["presentationUrl"] = presentation_url
+    presentation.setdefault("deployments", {})[deployment_id] = {
+        "webAppUrl": web_app_url,
+        "registeredAt": now,
+    }
+    presentation["latestDeploymentId"] = deployment_id
+    presentation["latestWebAppUrl"] = web_app_url
+    presentation["latestRegisteredAt"] = now
+    deployment = {
+        "presentationId": presentation_id,
+        "scriptId": presentation["scriptId"],
+        "label": presentation["label"],
+        "domain": presentation["domain"],
+        "presentationUrl": presentation.get("presentationUrl", ""),
+        "webAppUrl": web_app_url,
+        "registeredAt": now,
+        "isLatest": True,
+    }
+    registry.setdefault("deployments", {})[deployment_id] = deployment
+    return deployment
+
+
 def upsert_spreadsheet_deployment(
     registry: dict,
     *,
@@ -603,6 +703,27 @@ def resolve_deployment(registry: dict, args: argparse.Namespace) -> tuple[str, d
         if deployment:
             return deployment_id, deployment
 
+    presentation_id = None
+    if getattr(args, "presentation_id", None):
+        presentation_id = args.presentation_id
+    elif getattr(args, "presentation_url", None):
+        presentation_id = parse_presentation_id(args.presentation_url)
+
+    if presentation_id:
+        presentation = registry.get("presentations", {}).get(presentation_id)
+        if not presentation or not presentation.get("latestDeploymentId"):
+            sys.exit(f"No deployment registered for presentation {presentation_id}")
+        deployment_id = presentation["latestDeploymentId"]
+        base = registry["deployments"].get(deployment_id) or {}
+        return deployment_id, {
+            **base,
+            "presentationId": presentation_id,
+            "scriptId": base.get("scriptId") or presentation.get("scriptId", ""),
+            "label": base.get("label") or presentation.get("label", presentation_id),
+            "webAppUrl": base.get("webAppUrl") or presentation.get("latestWebAppUrl", ""),
+            "presentationUrl": base.get("presentationUrl") or presentation.get("presentationUrl", ""),
+        }
+
     document_id = None
     if getattr(args, "document_id", None):
         document_id = args.document_id
@@ -649,7 +770,19 @@ def resolve_deployment(registry: dict, args: argparse.Namespace) -> tuple[str, d
 
     spreadsheets = registry.get("spreadsheets", {})
     documents = registry.get("documents", {})
-    if len(spreadsheets) + len(documents) == 1:
+    presentations = registry.get("presentations", {})
+    if len(spreadsheets) + len(documents) + len(presentations) == 1:
+        if len(presentations) == 1:
+            presentation_id, presentation = next(iter(presentations.items()))
+            deployment_id = presentation.get("latestDeploymentId")
+            if deployment_id:
+                return deployment_id, registry.get("deployments", {}).get(deployment_id) or {
+                    "presentationId": presentation_id,
+                    "scriptId": presentation.get("scriptId", ""),
+                    "label": presentation.get("label", ""),
+                    "webAppUrl": presentation.get("latestWebAppUrl", ""),
+                    "presentationUrl": presentation.get("presentationUrl", ""),
+                }
         if len(documents) == 1:
             doc = next(iter(documents.values()))
             document_id = next(iter(documents.keys()))
@@ -676,7 +809,7 @@ def resolve_deployment(registry: dict, args: argparse.Namespace) -> tuple[str, d
             return deployment_id, deployment
 
     sys.exit(
-        "Could not resolve deployment. Provide --spreadsheet-url, --document-url, or --deployment-id.\n"
+        "Could not resolve deployment. Provide --spreadsheet-url, --document-url, --presentation-url, or --deployment-id.\n"
         "If you redeployed, run register with the new web app URL."
     )
 
@@ -714,6 +847,18 @@ def payload_uses_doc_actions(payload: dict) -> bool:
     return action in DOC_ACTIONS
 
 
+def payload_uses_slides_actions(payload: dict) -> bool:
+    action = normalize_action(payload.get("action", ""))
+    if action == "batch":
+        ops = payload.get("ops") or []
+        return bool(ops) and all(
+            normalize_action(op.get("action", "")) in SLIDES_ACTIONS
+            for op in ops
+            if isinstance(op, dict)
+        )
+    return action in SLIDES_ACTIONS
+
+
 def resolve_call_payload(args: argparse.Namespace, deployment: dict) -> dict:
     if args.payload_file:
         payload = json.loads(Path(args.payload_file).read_text())
@@ -739,7 +884,16 @@ def resolve_call_payload(args: argparse.Namespace, deployment: dict) -> dict:
 
     sheet_action = payload_uses_sheet_actions(payload)
     doc_action = payload_uses_doc_actions(payload)
+    slides_action = payload_uses_slides_actions(payload)
     drive_action = normalize_action(payload.get("action", "")) in DRIVE_UPLOAD_ACTIONS
+
+    if slides_action and not sheet_action and not doc_action:
+        if getattr(args, "presentation_url", None):
+            payload.setdefault("presentationId", parse_presentation_id(args.presentation_url))
+        elif getattr(args, "presentation_id", None):
+            payload.setdefault("presentationId", args.presentation_id)
+        elif deployment.get("presentationId"):
+            payload.setdefault("presentationId", deployment["presentationId"])
 
     if doc_action and not sheet_action:
         if getattr(args, "document_url", None):
@@ -772,6 +926,8 @@ def detect_agent_host() -> str:
 
 def normalize_call_payload(payload: dict) -> dict:
     action = payload.get("action", "")
+    if action == "copySlide" and payload.get("sourcePresentationUrl"):
+        payload.setdefault("sourcePresentationId", parse_presentation_id(payload["sourcePresentationUrl"]))
     if action in ("replyDocComment", "docReplyComment"):
         payload.setdefault("host", detect_agent_host())
     if action == "batch":
@@ -1002,6 +1158,14 @@ def is_document_registered(registry: dict, document_id: str) -> bool:
     return bool(dep_id and registry.get("deployments", {}).get(dep_id))
 
 
+def is_presentation_registered(registry: dict, presentation_id: str) -> bool:
+    presentation = registry.get("presentations", {}).get(presentation_id)
+    if not presentation:
+        return False
+    dep_id = presentation.get("latestDeploymentId")
+    return bool(dep_id and registry.get("deployments", {}).get(dep_id))
+
+
 def is_spreadsheet_registered(registry: dict, spreadsheet_id: str) -> bool:
     sheet = registry.get("spreadsheets", {}).get(spreadsheet_id)
     if not sheet:
@@ -1056,6 +1220,16 @@ def cmd_status(args: argparse.Namespace) -> None:
                 "deploymentsCount": len(doc.get("deployments", {})),
             }
         )
+    presentations = []
+    for presentation_id, presentation in registry.get("presentations", {}).items():
+        presentations.append(
+            {
+                "presentationId": presentation_id,
+                "label": presentation.get("label", presentation_id),
+                "latestDeploymentId": presentation.get("latestDeploymentId"),
+                "deploymentsCount": len(presentation.get("deployments", {})),
+            }
+        )
     payload = {
         "mode": "browser" if browser_auth_ready() else ("oauth" if creds else "unset"),
         "browser_ready": browser_auth_ready(),
@@ -1066,9 +1240,23 @@ def cmd_status(args: argparse.Namespace) -> None:
         "skill_ready": (SKILL_DIR / "SKILL.md").exists(),
         "spreadsheets": sheets,
         "documents": documents,
+        "presentations": presentations,
         "browser_signed_in_at": browser_state.get("signed_in_at"),
     }
-    if getattr(args, "document_url", None):
+    if getattr(args, "presentation_url", None):
+        try:
+            presentation_id = parse_presentation_id(args.presentation_url)
+            payload["presentationId"] = presentation_id
+            payload["resourceType"] = "presentation"
+            payload["registered"] = is_presentation_registered(registry, presentation_id)
+            presentation = registry.get("presentations", {}).get(presentation_id, {})
+            if presentation:
+                payload["label"] = presentation.get("label")
+                payload["scriptId"] = presentation.get("scriptId")
+        except ValueError as err:
+            payload["presentation_error"] = str(err)
+            payload["registered"] = False
+    elif getattr(args, "document_url", None):
         try:
             document_id = parse_document_id(args.document_url)
             payload["documentId"] = document_id
@@ -1107,6 +1295,16 @@ def parse_document_id(value: str) -> str:
     raise ValueError(f"Could not parse document id from: {value}")
 
 
+def parse_presentation_id(value: str) -> str:
+    value = value.strip()
+    match = re.search(r"/presentation/d/([a-zA-Z0-9-_]+)", value)
+    if match:
+        return match.group(1)
+    if re.fullmatch(r"[a-zA-Z0-9-_]{20,}", value):
+        return value
+    raise ValueError(f"Could not parse presentation id from: {value}")
+
+
 def parse_spreadsheet_id(value: str) -> str:
     value = value.strip()
     match = re.search(r"/spreadsheets/d/([a-zA-Z0-9-_]+)", value)
@@ -1143,6 +1341,8 @@ def cmd_parse(args: argparse.Namespace) -> None:
         result["spreadsheetId"] = parse_spreadsheet_id(args.spreadsheet)
     if args.document:
         result["documentId"] = parse_document_id(args.document)
+    if args.presentation:
+        result["presentationId"] = parse_presentation_id(args.presentation)
     if args.web_app:
         result["deploymentId"] = parse_deployment_id(args.web_app)
     if args.script:
@@ -1154,6 +1354,30 @@ def cmd_register(args: argparse.Namespace) -> None:
     registry = load_registry()
     web_app_url = args.web_app_url or ""
     deployment_id = (args.deployment_id or parse_deployment_id(web_app_url)).strip() if (args.deployment_id or web_app_url) else ""
+
+    if args.presentation_url or args.presentation_id:
+        presentation_id = args.presentation_id or parse_presentation_id(args.presentation_url)
+        existing = registry.get("presentations", {}).get(presentation_id, {})
+        script_id = args.script_id or (
+            parse_script_id(args.script_ref) if args.script_ref else existing.get("scriptId", "")
+        )
+        if not script_id:
+            sys.exit("script id/ref is required on first register for this presentation")
+        if not deployment_id or not web_app_url:
+            sys.exit("web app url or deployment id is required")
+        deployment = upsert_presentation_deployment(
+            registry,
+            presentation_id=presentation_id,
+            script_id=script_id,
+            deployment_id=deployment_id,
+            web_app_url=web_app_url,
+            label=args.label or existing.get("label", presentation_id),
+            domain=args.domain or existing.get("domain", ""),
+            presentation_url=args.presentation_url or existing.get("presentationUrl", ""),
+        )
+        save_registry(registry)
+        print(json.dumps({"latestDeploymentId": deployment_id, **deployment}, indent=2))
+        return
 
     if args.document_url or args.document_id:
         document_id = args.document_id or parse_document_id(args.document_url)
@@ -1345,17 +1569,22 @@ def run_editor_authorize(script_id: str, *, wait_seconds: int = 20) -> bool:
 
 
 def cmd_authorize(args: argparse.Namespace) -> None:
-    """Open Apps Script editor so deployer can run authorizeWorkspace once (Docs scope)."""
+    """Open Apps Script editor so deployer can run authorizeWorkspace once (Workspace scopes)."""
     registry = load_registry()
     script_id = getattr(args, "script_id", None)
 
     if not script_id:
-        if args.document_url:
+        if args.presentation_url:
+            presentation = registry.get("presentations", {}).get(parse_presentation_id(args.presentation_url), {})
+            script_id = presentation.get("scriptId")
+        elif args.document_url:
             doc = registry.get("documents", {}).get(parse_document_id(args.document_url), {})
             script_id = doc.get("scriptId")
         elif args.spreadsheet_url:
             sheet = registry.get("spreadsheets", {}).get(parse_spreadsheet_id(args.spreadsheet_url), {})
             script_id = sheet.get("scriptId")
+        elif args.presentation_id:
+            script_id = registry.get("presentations", {}).get(args.presentation_id, {}).get("scriptId")
         elif args.document_id:
             script_id = registry.get("documents", {}).get(args.document_id, {}).get("scriptId")
         elif args.spreadsheet_id:
@@ -1366,11 +1595,11 @@ def cmd_authorize(args: argparse.Namespace) -> None:
 
     if not script_id:
         sys.exit(
-            "authorize needs --script-id, --script-ref, or a registered --spreadsheet-url / --document-url"
+            "authorize needs --script-id, --script-ref, or a registered resource URL"
         )
 
     editor_url = f"https://script.google.com/d/{script_id}/edit"
-    print("After upgrading to v2 (Docs support), run authorizeWorkspace once in Apps Script:")
+    print("After upgrading the Workspace script, run authorizeWorkspace once in Apps Script:")
     print(f"  1. Open: {editor_url}")
     print("  2. Select function authorizeWorkspace in the toolbar")
     print("  3. Click Run → Review permissions → Allow")
@@ -1379,7 +1608,7 @@ def cmd_authorize(args: argparse.Namespace) -> None:
     if getattr(args, "auto", False):
         print("\nRunning authorizeWorkspace automatically in Apps Script editor...")
         if run_editor_authorize(script_id, wait_seconds=args.wait):
-            print("Docs scope authorized.")
+            print("Workspace scopes authorized.")
         else:
             print("Could not confirm authorization — complete steps manually if Docs calls still fail.")
         return
@@ -1395,7 +1624,7 @@ def cmd_authorize(args: argparse.Namespace) -> None:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Google Sheets Apps Script agent")
+    parser = argparse.ArgumentParser(description="Google Workspace Apps Script agent")
     sub = parser.add_subparsers(dest="command", required=True)
 
     signin = sub.add_parser("signin", help="Sign in with Google OAuth (requires client secret)")
@@ -1420,6 +1649,7 @@ def build_parser() -> argparse.ArgumentParser:
     status = sub.add_parser("status", help="Show auth and registered deployments")
     status.add_argument("--spreadsheet-url", help="Check if this spreadsheet is registered")
     status.add_argument("--document-url", help="Check if this Google Doc is registered")
+    status.add_argument("--presentation-url", help="Check if this Google Slides deck is registered")
 
     setup = sub.add_parser("setup", help="Check or install machine dependencies (agent runs this)")
     setup.add_argument("--install", action="store_true", help="Run setup.sh (pip + playwright chromium)")
@@ -1428,16 +1658,19 @@ def build_parser() -> argparse.ArgumentParser:
     parse = sub.add_parser("parse", help="Extract IDs from pasted URLs")
     parse.add_argument("--spreadsheet", help="Spreadsheet URL or id")
     parse.add_argument("--document", help="Google Doc URL or id")
+    parse.add_argument("--presentation", help="Google Slides URL or id")
     parse.add_argument("--web-app", help="Web app /exec URL or deployment id")
     parse.add_argument("--script", help="Script project URL or script id")
 
-    reg = sub.add_parser("register", help="Register or refresh latest deployment for a spreadsheet")
+    reg = sub.add_parser("register", help="Register or refresh a Workspace resource deployment")
     reg.add_argument("--deployment-id")
     reg.add_argument("--web-app-url")
     reg.add_argument("--spreadsheet-id")
     reg.add_argument("--spreadsheet-url")
     reg.add_argument("--document-id")
     reg.add_argument("--document-url")
+    reg.add_argument("--presentation-id")
+    reg.add_argument("--presentation-url")
     reg.add_argument("--script-id")
     reg.add_argument("--script-ref", help="Script project URL or script id")
     reg.add_argument("--label", default="")
@@ -1449,6 +1682,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     bootstrap.add_argument("--spreadsheet-url")
     bootstrap.add_argument("--document-url")
+    bootstrap.add_argument("--presentation-url")
     bootstrap.add_argument("--script-id")
     bootstrap.add_argument("--script-ref", help="Script project URL or script id")
     bootstrap.add_argument("--deployment-id", help="Existing deployment to update (with --update-only)")
@@ -1510,7 +1744,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     authorize = sub.add_parser(
         "authorize",
-        help="Open Apps Script editor to grant Docs scope (run authorizeWorkspace once)",
+        help="Open Apps Script editor to grant Workspace scopes (run authorizeWorkspace once)",
     )
     add_target_args(authorize)
     authorize.add_argument("--script-ref", help="Script project URL or script id")
@@ -1527,6 +1761,8 @@ def add_target_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--spreadsheet-url", help="Spreadsheet URL (uses latest deployment)")
     parser.add_argument("--document-id", help="Google Doc id (uses latest deployment)")
     parser.add_argument("--document-url", help="Google Doc URL (uses latest deployment)")
+    parser.add_argument("--presentation-id", help="Google Slides id (uses latest deployment)")
+    parser.add_argument("--presentation-url", help="Google Slides URL (uses latest deployment)")
     parser.add_argument("--web-app-url", help="Web app URL (updates latest if resource known)")
 
 
@@ -1534,15 +1770,18 @@ def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
     if args.command == "register":
-        has_resource = args.spreadsheet_id or args.spreadsheet_url or args.document_id or args.document_url
+        has_resource = (
+            args.spreadsheet_id or args.spreadsheet_url or args.document_id or args.document_url
+            or args.presentation_id or args.presentation_url
+        )
         has_deployment = args.deployment_id or args.web_app_url
         if not has_resource:
             sys.exit("register needs --spreadsheet-url or --document-url")
         if not has_deployment:
             sys.exit("register needs --web-app-url (or --deployment-id)")
 
-    if args.command == "bootstrap" and not args.spreadsheet_url and not args.document_url:
-        sys.exit("bootstrap needs --spreadsheet-url or --document-url")
+    if args.command == "bootstrap" and not args.spreadsheet_url and not args.document_url and not args.presentation_url:
+        sys.exit("bootstrap needs a resource URL")
 
     if args.command == "upload" and not args.file:
         sys.exit("upload needs --file")
@@ -1554,13 +1793,19 @@ def main() -> None:
             or getattr(args, "spreadsheet_url", None)
             or getattr(args, "document_id", None)
             or getattr(args, "document_url", None)
+            or getattr(args, "presentation_id", None)
+            or getattr(args, "presentation_url", None)
             or getattr(args, "web_app_url", None)
         )
         if args.command == "call" and not has_target:
             registry = load_registry()
-            total = len(registry.get("spreadsheets", {})) + len(registry.get("documents", {}))
+            total = (
+                len(registry.get("spreadsheets", {}))
+                + len(registry.get("documents", {}))
+                + len(registry.get("presentations", {}))
+            )
             if total != 1:
-                sys.exit("call needs --spreadsheet-url, --document-url, or a single registered resource")
+                sys.exit("call needs a resource URL or a single registered resource")
 
     commands = {
         "signin": cmd_signin,

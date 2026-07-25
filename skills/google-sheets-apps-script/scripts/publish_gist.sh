@@ -34,6 +34,7 @@ pairs = [
     ("templates-CommentsDoc.gs", skill_dir / "templates/CommentsDoc.gs"),
     ("templates-DriveUpload.gs", skill_dir / "templates/DriveUpload.gs"),
     ("templates-DocTabs.gs", skill_dir / "templates/DocTabs.gs"),
+    ("templates-Slides.gs", skill_dir / "templates/Slides.gs"),
     ("templates-appsscript.json", skill_dir / "templates/appsscript.json"),
     ("examples-canvas-manifest.v1.json", skill_dir / "examples/canvas-manifest.v1.json"),
     ("scripts-sheets_agent.py", skill_dir / "scripts/sheets_agent.py"),
@@ -65,7 +66,7 @@ for name, path in pairs:
     files[name] = {"content": path.read_text(encoding="utf-8")}
 
 payload = {
-    "description": "Cursor + Claude skill: Google Sheets & Docs Agent v2.6 (tabs, upload, canvas-export, comments)",
+    "description": "Cursor + Claude skill: Google Workspace Agent v3.0 (Sheets, Docs, Slides)",
     "files": files,
 }
 

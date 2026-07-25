@@ -100,7 +100,7 @@ Ver [`skills/humanizer-br/SKILL.md`](./skills/humanizer-br/SKILL.md) para o cat�
 
 ### `google-sheets-apps-script`
 
-Automação self-service de **Google Sheets** e **Google Docs** via Apps Script + browser mode (sem GCP pro usuário final). Docs são markdown-first (`appendMarkdown`, tabelas, imagens, abas de doc). Invocação: `/tapioca:google-sheets-apps-script`.
+Automação self-service de **Google Sheets**, **Google Docs** e **Google Slides** via Apps Script + browser mode (sem GCP pro usuário final). Docs são markdown-first (`appendMarkdown`, tabelas, imagens, abas de doc); Slides cobre inspeção de deck, CRUD/reordenação de slides, texto/imagens/background e cópia entre apresentações preservando template. Invocação: `/tapioca:google-sheets-apps-script`.
 
 Upstream: [gist v2.6](https://gist.github.com/gabriel-dantas98/6ad86b6bfab840703ec214f228c3004b). Registry: `~/.config/google-sheets-agent/`. Evals comportamentais em `evals/evals.json` + `evals/grade_runs.py`; static smoke em `evals/run_static.py`.
 

@@ -1,6 +1,6 @@
 # Arquitetura — google-sheets-apps-script
 
-Guia de referência para o time: arquitetura completa, dependências, e os dois fluxos que importam — como uma planilha ou documento é conectado pela primeira vez, e o que acontece a cada chamada depois disso.
+Guia de referência para o time: arquitetura completa, dependências, e os dois fluxos que importam — como uma planilha, documento ou apresentação é conectado pela primeira vez, e o que acontece a cada chamada depois disso.
 
 > Fonte de verdade contínua para comportamento do agente: [SKILL.md](SKILL.md), [wizard.md](wizard.md), [reference.md](reference.md), [docs-reference.md](docs-reference.md), [DESIGN.md](DESIGN.md). Este documento é a visão técnica/arquitetural para o time, não instruções de agente.
 
@@ -8,7 +8,7 @@ Guia de referência para o time: arquitetura completa, dependências, e os dois 
 
 ## 1. Visão geral
 
-É uma skill do Claude Code / Cursor que deixa o agente editar **Google Sheets** e **Google Docs** em nome de um usuário não técnico, sem que esse usuário precise abrir o GCP Console, gerar credenciais OAuth ou tocar em terminal. O agente roda todo o CLI; o usuário só cola links e clica na UI do Google quando pedido.
+É uma skill do Claude Code / Cursor que deixa o agente editar **Google Sheets**, **Google Docs** e **Google Slides** em nome de um usuário não técnico, sem que esse usuário precise abrir o GCP Console, gerar credenciais OAuth ou tocar em terminal. O agente roda todo o CLI; o usuário só cola links e clica na UI do Google quando pedido.
 
 Tecnicamente, isso é resolvido publicando um **Google Apps Script** como Web App dentro da própria planilha ou documento do usuário (rodando com a identidade dele, sem custo de infra) e falando com esse Web App via um perfil de navegador Playwright persistente — **sem precisar de projeto GCP nem de OAuth client por usuário**. Existe um caminho OAuth paralelo, mas é reservado para maintainers que fazem deploy automatizado via API.
 
@@ -16,6 +16,7 @@ Tecnicamente, isso é resolvido publicando um **Google Apps Script** como Web Ap
 |---|---|
 | **Google Sheets** | CRUD de células, estilo, comentários, abas e operações em lote (`batch`). |
 | **Google Docs** | Markdown-first: `appendMarkdown`, tabelas, imagens, abas de documento, comentários nativos. |
+| **Google Slides** | Inspeção, CRUD/reordenação, caixas de texto, imagens, background e cópia entre apresentações. |
 
 ---
 
@@ -38,6 +39,7 @@ flowchart TB
         WEBAPP["Apps Script Web App<br/>(/exec) — roda como o usuário"]
         SHEETSAPI["SpreadsheetApp"]
         DOCSAPI["DocumentApp"]
+    SLIDESAPI["SlidesApp"]
         DRIVEAPI["DriveApp"]
     end
 
@@ -48,9 +50,11 @@ flowchart TB
     CREDS -.->|"modo OAuth (maintainer)"| WEBAPP
     WEBAPP --> SHEETSAPI
     WEBAPP --> DOCSAPI
+    WEBAPP --> SLIDESAPI
     WEBAPP --> DRIVEAPI
     SHEETSAPI -->|resposta JSON| WEBAPP
     DOCSAPI -->|resposta JSON| WEBAPP
+    SLIDESAPI -->|resposta JSON| WEBAPP
     WEBAPP -->|JSON| CLI
     CLI -->|stdout JSON| AGENT
 ```

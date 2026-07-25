@@ -2,7 +2,8 @@
   "description": "Live CLI integration evals against a registered spreadsheet (browser mode).",
   "env": {
     "spreadsheet_url": "GOOGLE_SHEETS_EVAL_SPREADSHEET_URL",
-    "document_url": "GOOGLE_SHEETS_EVAL_DOCUMENT_URL"
+    "document_url": "GOOGLE_SHEETS_EVAL_DOCUMENT_URL",
+    "presentation_url": "GOOGLE_SHEETS_EVAL_PRESENTATION_URL"
   },
   "cases": [
     {
@@ -101,6 +102,36 @@
       "assert": {
         "json_path": "documentId",
         "matches": "^[a-zA-Z0-9-_]{20,}$"
+      }
+    },
+    {
+      "id": "parse-presentation",
+      "name": "parse-presentation-url",
+      "requires_env": "GOOGLE_SHEETS_EVAL_PRESENTATION_URL",
+      "command": [
+        "parse",
+        "--presentation",
+        "${GOOGLE_SHEETS_EVAL_PRESENTATION_URL}"
+      ],
+      "assert": {
+        "json_path": "presentationId",
+        "matches": "^[a-zA-Z0-9-_]{20,}$"
+      }
+    },
+    {
+      "id": "listSlides",
+      "name": "list-slides",
+      "requires_env": "GOOGLE_SHEETS_EVAL_PRESENTATION_URL",
+      "command": [
+        "call",
+        "--presentation-url",
+        "${GOOGLE_SHEETS_EVAL_PRESENTATION_URL}",
+        "--payload",
+        "{\"action\":\"listSlides\"}"
+      ],
+      "assert": {
+        "json_path": "slides.0.slideId",
+        "matches": "^.+$"
       }
     }
   ]

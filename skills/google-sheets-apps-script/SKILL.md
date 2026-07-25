@@ -1,6 +1,6 @@
 ---
 name: google-sheets-apps-script
-description: Self-service Google Sheets and Google Docs automation via Apps Script and browser mode (no GCP for end users). Prefer markdown for Google Docs (appendMarkdown, tables, images, doc tabs). Guides non-technical users on fresh machines, onboard unregistered files, and performs CRUD, styling, comments, tabs (Sheets + Docs), upload, and rich document editing. Use via /tapioca:google-sheets-apps-script (tapioca plugin) or standalone in Cursor/Claude Code when the user mentions Google Sheets, Google Docs, planilha, documento, markdown docs, or Apps Script web app setup.
+description: Self-service Google Sheets, Docs, and Slides automation via Apps Script and browser mode (no GCP for end users). Supports spreadsheet CRUD, markdown-first Docs, and presentation editing, template copying, and asset insertion. Use via /tapioca:google-sheets-apps-script when the user mentions Google Workspace, Sheets, Docs, Slides, planilha, documento, apresentação, or Apps Script.
 allowed-tools:
   - Read
   - Write
@@ -8,7 +8,7 @@ allowed-tools:
   - Glob
 ---
 
-# Google Sheets & Docs Agent (Apps Script)
+# Google Workspace Agent (Apps Script)
 
 **Audience:** non-technical users. **Agent runs all terminal.** User opens links, clicks Google UI, pastes URLs.
 
@@ -43,12 +43,14 @@ Upstream gist (standalone install only): https://gist.github.com/gabriel-dantas9
 |------|-----------|-------------|----------|
 | Spreadsheet | planilha | `/spreadsheets/d/...` | `--spreadsheet-url` |
 | Document | doc / Google Docs | `/document/d/...` | `--document-url` |
+| Presentation | apresentação / Google Slides | `/presentation/d/...` | `--presentation-url` |
 
 Check registration:
 
 ```bash
 python3 .../sheets_agent.py status --document-url "https://docs.google.com/document/d/.../edit"
 python3 .../sheets_agent.py status --spreadsheet-url "https://docs.google.com/spreadsheets/d/.../edit"
+python3 .../sheets_agent.py status --presentation-url "https://docs.google.com/presentation/d/.../edit"
 ```
 
 **Unregistered** → wizard. **Never `call` until `registered: true`.**
@@ -105,7 +107,7 @@ Full markdown/table/image spec: [docs-reference.md](docs-reference.md)
    python3 .../sheets_agent.py setup --check-only
 
 2. status
-   python3 .../sheets_agent.py status [--spreadsheet-url URL]
+   python3 .../sheets_agent.py status [--spreadsheet-url URL|--document-url URL|--presentation-url URL]
 
 3. Branch:
    ├─ skill_ready: false     → skill missing on disk (tapioca: reinstall plugin; standalone: gist install.sh) — agent only
@@ -121,6 +123,8 @@ Full markdown/table/image spec: [docs-reference.md](docs-reference.md)
 **User gives URL but `registered: false`:** "Essa planilha ainda não está conectada" → wizard from step 0.
 
 **User gives URL and `registered: true`:** skip onboarding, go to work (still confirm destructive ops).
+
+**User asks to edit a presentation without URL:** ask for the full link, then `status --presentation-url`.
 
 ---
 
@@ -174,6 +178,7 @@ Follow [wizard.md](wizard.md). Summary:
 | Vague request | "Quer kanban, financeiro, ou cap table?" |
 | Overwrite content | "Já tem dados — **substituo** ou crio aba nova?" |
 | Multiple spreadsheets | "Qual planilha? Cola o link." |
+| Delete slide | "Posso apagar o slide 5? Essa ação não tem undo fácil." |
 
 **OK without asking:** explicit values, read-only ops, user said "pode fazer", single registered sheet + clear target.
 
@@ -237,6 +242,24 @@ python3 .../sheets_agent.py call --document-url "..." \
 
 python3 .../sheets_agent.py call --document-url "..." \
   --payload '{"action":"appendMarkdown","tabId":"t.xxx","markdown":"# Section\n\nContent..."}'
+```
+
+### Google Slides — v3.0.0+
+
+Inspect an existing deck before writing: `listSlides`, then `getSlide`. Coordinates use points.
+
+| action | purpose |
+|--------|---------|
+| `listSlides` / `getSlide` | inspect the deck and its elements |
+| `createSlide` / `duplicateSlide` / `moveSlide` / `deleteSlide` | manage slides; confirm delete |
+| `replaceText` | replace text in one slide or the entire deck |
+| `appendTextBox` / `insertImage` / `setBackground` | add and style basic content |
+| `copySlide` | copy a slide from another deck, retaining master/layout/assets (`sourcePresentationId` or `sourcePresentationUrl`) |
+| `batch` | group actions against one presentation |
+
+```bash
+python3 .../sheets_agent.py call --presentation-url "https://docs.google.com/presentation/d/.../edit" \
+  --payload '{"action":"copySlide","sourcePresentationId":"SOURCE_DECK_ID","sourceSlideIndex":1,"insertionIndex":3}'
 ```
 
 ### Upload + canvas export — v2.5+

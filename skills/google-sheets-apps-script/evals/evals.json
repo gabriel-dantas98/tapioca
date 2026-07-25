@@ -98,6 +98,46 @@
         "Does not call or pretend to call the sheet without registration",
         "Offers to connect the sheet in simple language"
       ]
+    },
+    {
+      "id": 8,
+      "eval_name": "unregistered-presentation",
+      "prompt": "Quero atualizar essa apresentação: https://docs.google.com/presentation/d/1AbCdEfGhIjKlMnOpQrStUvWxYz1234567890/edit",
+      "expected_output": "Agent checks presentation registration and starts the Slides onboarding when needed; it does not call an unregistered deck.",
+      "files": [],
+      "expectations": [
+        "Recognizes the URL as a Google Slides presentation",
+        "Checks status using --presentation-url before any edit",
+        "Does not ask the user to run terminal commands",
+        "Explains that the presentation needs to be connected if unregistered",
+        "Uses one clear next step"
+      ]
+    },
+    {
+      "id": 9,
+      "eval_name": "ask-before-delete-slide",
+      "prompt": "Apaga o slide 5 da minha apresentação de pitch.",
+      "expected_output": "Agent asks for a deck URL and confirmation before deleteSlide.",
+      "files": [],
+      "expectations": [
+        "Asks for the presentation URL when no deck is identified",
+        "Asks for confirmation before deleting a slide",
+        "Does not execute deleteSlide immediately",
+        "Does not tell the user to run terminal commands"
+      ]
+    },
+    {
+      "id": 10,
+      "eval_name": "copy-template-slide",
+      "prompt": "Copia o slide 2 do deck de templates para o meu pitch na posição 4.",
+      "expected_output": "Agent asks for source and destination presentation URLs if they are unavailable and uses copySlide after registration.",
+      "files": [],
+      "expectations": [
+        "Requests both source and destination deck links when ambiguous",
+        "Uses copySlide with sourcePresentationId, sourceSlideIndex, and insertionIndex",
+        "Checks destination registration before calling the API",
+        "Does not require GCP setup from the end user"
+      ]
     }
   ]
 }

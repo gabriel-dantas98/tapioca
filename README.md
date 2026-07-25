@@ -70,13 +70,13 @@ Companion: `humanizer-br` agent (under `agents/`) for multi-pass with self-scori
 
 ### `/tapioca:google-sheets-apps-script`
 
-Google Sheets and Google Docs automation via Apps Script (browser mode — no GCP for the end user). Docs are markdown-first. The agent runs the CLI; the user pastes links and confirms in Google's UI.
+Google Sheets, Google Docs, and Google Slides automation via Apps Script (browser mode — no GCP for the end user). Docs are markdown-first; Slides supports deck editing and cross-deck template copying. The agent runs the CLI; the user pastes links and confirms in Google's UI.
 
 ```text
 /tapioca:google-sheets-apps-script
 ```
 
-Upstream: [gist v2.6](https://gist.github.com/gabriel-dantas98/6ad86b6bfab840703ec214f228c3004b).
+Upstream: [gist v3.0](https://gist.github.com/gabriel-dantas98/6ad86b6bfab840703ec214f228c3004b).
 
 ## Install
 

@@ -84,6 +84,42 @@ Aliases: `listTabs`, `createTab`, `renameTab`, `deleteTab`, `setTabColor`.
 
 ---
 
+## Google Slides
+
+All Slides calls use `--presentation-url`; coordinates are points. Inspect existing decks first.
+
+```json
+{ "action": "listSlides" }
+```
+
+```json
+{ "action": "getSlide", "slideIndex": 0 }
+```
+
+```json
+{ "action": "createSlide", "index": 2, "layout": "BLANK" }
+```
+
+```json
+{ "action": "appendTextBox", "slideIndex": 0, "text": "Quarterly update", "x": 72, "y": 72, "width": 576, "height": 48, "style": { "fontSize": 28, "bold": true } }
+```
+
+```json
+{ "action": "insertImage", "slideIndex": 0, "url": "https://example.com/chart.png", "x": 72, "y": 144, "width": 240, "height": 160 }
+```
+
+```json
+{ "action": "replaceText", "find": "{{client}}", "replace": "Tapioca" }
+```
+
+```json
+{ "action": "copySlide", "sourcePresentationId": "SOURCE_DECK_ID", "sourceSlideIndex": 1, "insertionIndex": 3 }
+```
+
+`deleteSlide` is destructive: ask for confirmation first. `copySlide` copies the source master, layout, and assets when needed.
+
+---
+
 # Style object fields
 
 | field | type | example |

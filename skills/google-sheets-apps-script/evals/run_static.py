@@ -11,9 +11,12 @@ from pathlib import Path
 
 SKILL_DIR = Path(__file__).resolve().parent.parent
 CLI = SKILL_DIR / "scripts" / "sheets_agent.py"
+DEPLOY = SKILL_DIR / "scripts" / "apps_script_deploy.py"
+MANIFEST = SKILL_DIR / "templates" / "appsscript.json"
 CODE_GS = SKILL_DIR / "templates" / "Code.gs"
 DOCS_GS = SKILL_DIR / "templates" / "Docs.gs"
 MARKDOWN_GS = SKILL_DIR / "templates" / "MarkdownDoc.gs"
+SLIDES_GS = SKILL_DIR / "templates" / "Slides.gs"
 OUT = Path(__file__).resolve().parent / "latest-results" / "static.json"
 
 REQUIRED_FUNCTIONS = (
@@ -26,6 +29,13 @@ REQUIRED_FUNCTIONS = (
     "function authorizeWorkspace",
 )
 
+SLIDES_FUNCTIONS = (
+    "function runSlidesApi_",
+    "function slideIndex_",
+    "function listSlides_",
+    "function createSlide_",
+    "function copySlide_",
+)
 DOCS_FUNCTIONS = (
     "function readDoc_",
     "function appendDoc_",
@@ -46,13 +56,32 @@ def check_code_gs() -> list[dict]:
     results = []
     for fn in REQUIRED_FUNCTIONS:
         results.append({"check": f"Code.gs has {fn}", "passed": fn in text})
-    results.append({"check": "Code.gs version 2.6.0", "passed": "2.6.0" in text})
+    results.append({"check": "Code.gs version 3.0.0", "passed": "3.0.0" in text})
+    results.append(
+        {
+            "check": "authorizeWorkspace trashes Docs through DriveApp",
+            "passed": "document.setTrashed" not in text
+            and "DriveApp.getFileById(document.getId()).setTrashed(true)" in text,
+        }
+    )
     docs = DOCS_GS.read_text()
     for fn in DOCS_FUNCTIONS:
         results.append({"check": f"Docs.gs has {fn}", "passed": fn in docs})
     markdown = MARKDOWN_GS.read_text()
     for fn in MARKDOWN_FUNCTIONS:
         results.append({"check": f"MarkdownDoc.gs has {fn}", "passed": fn in markdown})
+    slides = SLIDES_GS.read_text()
+    for fn in SLIDES_FUNCTIONS:
+        results.append({"check": f"Slides.gs has {fn}", "passed": fn in slides})
+    deploy = DEPLOY.read_text()
+    results.append({"check": "Apps Script deploy includes Slides.gs", "passed": '"Slides"' in deploy})
+    manifest = json.loads(MANIFEST.read_text())
+    results.append(
+        {
+            "check": "Apps Script manifest grants Slides scope",
+            "passed": "https://www.googleapis.com/auth/presentations" in manifest.get("oauthScopes", []),
+        }
+    )
     return results
 
 
@@ -107,8 +136,33 @@ def check_parse_document() -> dict:
     return {"check": "CLI parse document URL", "passed": ok}
 
 
+def check_parse_presentation() -> dict:
+    proc = subprocess.run(
+        [
+            "python3",
+            str(CLI),
+            "parse",
+            "--presentation",
+            "https://docs.google.com/presentation/d/1AbCdEfGhIjKlMnOpQrStUvWxYz1234567890/edit",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    try:
+        data = json.loads(proc.stdout)
+        ok = data.get("presentationId") == "1AbCdEfGhIjKlMnOpQrStUvWxYz1234567890"
+    except json.JSONDecodeError:
+        ok = False
+    return {"check": "CLI parse presentation URL", "passed": ok}
+
+
 def main() -> None:
-    results = check_code_gs() + [check_cli_help(), check_parse(), check_parse_document()]
+    results = check_code_gs() + [
+        check_cli_help(),
+        check_parse(),
+        check_parse_document(),
+        check_parse_presentation(),
+    ]
     passed = sum(1 for r in results if r["passed"])
     report = {
         "metadata": {"type": "static", "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")},
