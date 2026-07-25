@@ -108,6 +108,7 @@ SLIDES_ACTIONS = {
     "moveSlide",
     "replaceText",
     "appendTextBox",
+    "insertShape",
     "insertImage",
     "setBackground",
     "copySlide",

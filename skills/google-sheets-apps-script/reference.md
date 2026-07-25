@@ -105,6 +105,10 @@ All Slides calls use `--presentation-url`; coordinates are points. Inspect exist
 ```
 
 ```json
+{ "action": "insertShape", "slideIndex": 0, "shapeType": "ROUND_RECTANGLE", "x": 72, "y": 144, "width": 240, "height": 80, "fill": "#0f172a", "text": "Palestra", "style": { "fontSize": 18, "bold": true, "foregroundColor": "#ffffff" } }
+```
+
+```json
 { "action": "insertImage", "slideIndex": 0, "url": "https://example.com/chart.png", "x": 72, "y": 144, "width": 240, "height": 160 }
 ```
 

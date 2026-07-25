@@ -76,7 +76,7 @@ function doGet(e) {
       ],
       slidesActions: [
         'listSlides', 'getSlide', 'createSlide', 'duplicateSlide', 'deleteSlide',
-        'moveSlide', 'replaceText', 'appendTextBox', 'insertImage',
+        'moveSlide', 'replaceText', 'appendTextBox', 'insertShape', 'insertImage',
         'setBackground', 'copySlide', 'batch',
       ],
     });

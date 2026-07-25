@@ -14,7 +14,7 @@ function isSlidesRequest_(req) {
 function isSlidesAction_(action) {
   return [
     'listSlides', 'getSlide', 'createSlide', 'duplicateSlide', 'deleteSlide',
-    'moveSlide', 'replaceText', 'appendTextBox', 'insertImage',
+    'moveSlide', 'replaceText', 'appendTextBox', 'insertShape', 'insertImage',
     'setBackground', 'copySlide'
   ].indexOf(action) !== -1;
 }
@@ -43,6 +43,7 @@ function dispatchSlides_(presentation, req) {
     case 'moveSlide': return moveSlide_(presentation, req);
     case 'replaceText': return replaceText_(presentation, req);
     case 'appendTextBox': return appendTextBox_(presentation, req);
+    case 'insertShape': return insertShape_(presentation, req);
     case 'insertImage': return insertImage_(presentation, req);
     case 'setBackground': return setBackground_(presentation, req);
     case 'copySlide': return copySlide_(presentation, req);
@@ -170,6 +171,31 @@ function appendTextBox_(presentation, req) {
   if (style.foregroundColor) textStyle.setForegroundColor(style.foregroundColor);
   if (style.bold !== undefined) textStyle.setBold(style.bold);
   if (style.italic !== undefined) textStyle.setItalic(style.italic);
+  return { objectId: shape.getObjectId(), slideId: slide.getObjectId() };
+}
+
+function insertShape_(presentation, req) {
+  var slide = slideAt_(presentation, req);
+  var type = req.shapeType === 'ROUND_RECTANGLE'
+    ? SlidesApp.ShapeType.ROUND_RECTANGLE
+    : SlidesApp.ShapeType.RECTANGLE;
+  var shape = slide.insertShape(
+    type,
+    req.x === undefined ? 72 : req.x,
+    req.y === undefined ? 72 : req.y,
+    req.width === undefined ? 240 : req.width,
+    req.height === undefined ? 120 : req.height
+  );
+  if (req.fill) shape.getFill().setSolidFill(req.fill);
+  if (req.text) {
+    shape.getText().setText(String(req.text));
+    var style = req.style || {};
+    var textStyle = shape.getText().getTextStyle();
+    if (style.fontSize !== undefined) textStyle.setFontSize(style.fontSize);
+    if (style.fontFamily) textStyle.setFontFamily(style.fontFamily);
+    if (style.foregroundColor) textStyle.setForegroundColor(style.foregroundColor);
+    if (style.bold !== undefined) textStyle.setBold(style.bold);
+  }
   return { objectId: shape.getObjectId(), slideId: slide.getObjectId() };
 }
 

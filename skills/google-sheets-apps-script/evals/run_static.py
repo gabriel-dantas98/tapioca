@@ -34,6 +34,7 @@ SLIDES_FUNCTIONS = (
     "function slideIndex_",
     "function listSlides_",
     "function createSlide_",
+    "function insertShape_",
     "function copySlide_",
 )
 DOCS_FUNCTIONS = (
