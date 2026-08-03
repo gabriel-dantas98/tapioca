@@ -91,3 +91,46 @@ function ensureDocsApi_() {
     );
   }
 }
+
+/**
+ * Wipes body content (main doc or a specific tab) via the Docs API instead of
+ * DocumentApp's body.clear(), which throws "Can't remove the last paragraph in
+ * a document section." Preserves the required trailing paragraph marker and,
+ * when tabId is given, targets that tab instead of the main body (DocumentApp's
+ * body.clear() only ever touches the main body, silently leaving tab content
+ * duplicated across republishes).
+ */
+function clearDocumentBodyViaDocsApi_(documentId, tabId) {
+  ensureDocsApi_();
+  var getParams = tabId ? { includeTabsContent: true } : undefined;
+  var doc = Docs.Documents.get(documentId, getParams);
+  var body = tabId ? findDocumentTabInApi_(doc.tabs, tabId) : doc.body;
+  if (!body) {
+    throw new Error('clearDocumentBodyViaDocsApi_: could not resolve body for tabId ' + tabId);
+  }
+  var content = body.content || [];
+  var endIndex = content.length ? content[content.length - 1].endIndex : 1;
+  if (endIndex <= 2) return;
+  var deleteRange = { startIndex: 1, endIndex: endIndex - 1 };
+  if (tabId) deleteRange.tabId = tabId;
+  Docs.Documents.batchUpdate({
+    requests: [{ deleteContentRange: { range: deleteRange } }],
+  }, documentId);
+}
+
+function findDocumentTabInApi_(tabs, tabId) {
+  var found = null;
+  (tabs || []).some(function (tab) {
+    var props = tab.tabProperties;
+    if (props && props.tabId === tabId) {
+      found = tab.documentTab && tab.documentTab.body;
+      return true;
+    }
+    if (tab.childTabs && tab.childTabs.length) {
+      found = findDocumentTabInApi_(tab.childTabs, tabId);
+      return !!found;
+    }
+    return false;
+  });
+  return found;
+}

@@ -48,6 +48,7 @@ function uploadAndAppendImage_(doc, req) {
     width: req.width,
     height: req.height,
     maxWidth: req.maxWidth,
+    tabId: req.tabId,
   });
 
   return {

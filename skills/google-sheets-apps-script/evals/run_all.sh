@@ -11,6 +11,10 @@ echo "== Static evals =="
 python3 "$EVALS_DIR/run_static.py"
 
 echo ""
+echo "== Tab (tabId) behavior evals =="
+node "$EVALS_DIR/run_tabid_behavior.js"
+
+echo ""
 echo "== Integration evals =="
 python3 "$EVALS_DIR/run_integration.py" || INTEGRATION_FAILED=1
 

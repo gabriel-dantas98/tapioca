@@ -30,6 +30,12 @@ Replace entire doc body:
 { "action": "appendMarkdown", "clear": true, "markdown": "# Fresh doc\n\nContent..." }
 ```
 
+`clear: true` wipes via the Docs API (`deleteContentRange`), not `DocumentApp` — the latter throws on the last paragraph marker. When republishing into a tab, always pass `tabId` alongside `clear`; the wipe is scoped to whichever body you target, and a wipe without `tabId` only clears the main body, leaving tab content duplicated on every republish:
+
+```json
+{ "action": "appendMarkdown", "tabId": "t.xxx", "clear": true, "markdown": "..." }
+```
+
 ### Supported syntax
 
 | Markdown | Renders as |
@@ -57,6 +63,8 @@ Replace entire doc body:
 ```
 
 Separator row (`| --- |`) is ignored. All rows padded to same column count.
+
+Inline markdown (`**bold**`, `[links](url)`, `` `code` ``) works inside table cells the same as in a paragraph. This only applies to markdown pipe tables via `appendMarkdown` — the raw `appendTable` action (JSON `rows`) still writes cell text as-is, no markdown parsing.
 
 ### Images (markdown)
 
@@ -285,6 +293,8 @@ Target a tab when writing:
   "markdown": "# Section\n\nBody..."
 }
 ```
+
+`tabId` is accepted by every doc action that reads or writes body content — `appendMarkdown`, `appendTable`, `appendImage`, `uploadAndAppendImage`, `readDoc`, `listDoc`, `deleteDoc` — targeting that tab instead of the main body. Omit it to act on the main/default tab. `styleDoc`, `commentDoc`, and `readDocComments` are not yet tab-aware; they always act on the main body regardless of `tabId`.
 
 ---
 

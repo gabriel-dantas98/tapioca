@@ -234,7 +234,7 @@ Organizational doc tabs (URL `?tab=t.xxx`). Requires **Docs API** advanced servi
 | `createDocTab` | new tab (`name`) |
 | `renameDocTab` | rename (`tabId`, `name`) |
 
-Write into a specific tab: `appendMarkdown` with `tabId`.
+Read or write into a specific tab by passing `tabId` to `appendMarkdown`, `appendTable`, `appendImage`, `uploadAndAppendImage`, `readDoc`, `listDoc`, or `deleteDoc`. `styleDoc`/`commentDoc` don't support `tabId` yet — they always act on the main body.
 
 ```bash
 python3 .../sheets_agent.py call --document-url "..." \

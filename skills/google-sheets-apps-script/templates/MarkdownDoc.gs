@@ -6,10 +6,10 @@
 function appendMarkdown_(doc, req) {
   var markdown = req.markdown || req.text || req.content;
   requireDoc_(markdown, 'markdown');
-  var body = resolveMarkdownBody_(doc, req);
   if (req.clear === true) {
-    body.clear();
+    clearDocumentBodyViaDocsApi_(doc.getId(), req.tabId ? String(req.tabId) : null);
   }
+  var body = resolveMarkdownBody_(doc, req);
   return renderMarkdownIntoBody_(body, String(markdown), req);
 }
 
@@ -18,7 +18,7 @@ function appendTable_(doc, req) {
   if (!rows || !rows.length) {
     throw new Error('appendTable needs rows (2D array of strings)');
   }
-  var body = doc.getBody();
+  var body = resolveMarkdownBody_(doc, req);
   var table = body.appendTable(normalizeTableRows_(rows));
   styleTable_(table, req.headerRow !== false);
   return {
@@ -29,7 +29,7 @@ function appendTable_(doc, req) {
 
 function appendImage_(doc, req) {
   var blob = fetchImageBlob_(req);
-  var body = doc.getBody();
+  var body = resolveMarkdownBody_(doc, req);
   var paragraph = body.appendParagraph('');
   var image = paragraph.appendInlineImage(blob);
   applyImageSize_(image, req);
@@ -250,9 +250,17 @@ function appendCodeBlock_(body, code) {
 }
 
 function appendMarkdownTable_(body, lines, req) {
-  var rows = parseMarkdownTableRows_(lines);
-  if (!rows.length) return;
-  var table = body.appendTable(rows);
+  var rawRows = parseMarkdownTableRows_(lines);
+  if (!rawRows.length) return;
+  var plainRows = rawRows.map(function (row) {
+    return row.map(function (cell) { return parseInlineMarkdown_(cell).plain; });
+  });
+  var table = body.appendTable(plainRows);
+  for (var r = 0; r < rawRows.length; r++) {
+    for (var c = 0; c < rawRows[r].length; c++) {
+      applyInlineMarkdown_(table.getCell(r, c).editAsText(), rawRows[r][c]);
+    }
+  }
   styleTable_(table, req.tableHeaderRow !== false);
 }
 
@@ -295,9 +303,11 @@ function normalizeTableRows_(rows) {
 function styleTable_(table, headerRow) {
   table.setBorderWidth(1);
   if (headerRow && table.getNumRows() > 0) {
-    table.getRow(0).editAsText().setBold(true);
-    for (var c = 0; c < table.getRow(0).getNumCells(); c++) {
-      table.getCell(0, c).setBackgroundColor('#f8fafc');
+    var headerCells = table.getRow(0).getNumCells();
+    for (var c = 0; c < headerCells; c++) {
+      var cell = table.getCell(0, c);
+      cell.editAsText().setBold(true);
+      cell.setBackgroundColor('#f8fafc');
     }
   }
 }
