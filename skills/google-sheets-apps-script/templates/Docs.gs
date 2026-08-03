@@ -132,7 +132,7 @@ function paragraphBounds_(body, paragraphIndex) {
 }
 
 function readDoc_(doc, req) {
-  var body = doc.getBody();
+  var body = resolveMarkdownBody_(doc, req);
   var text = body.getText();
   var result = {
     title: doc.getName(),
@@ -157,7 +157,7 @@ function readDoc_(doc, req) {
 }
 
 function listDoc_(doc, req) {
-  var body = doc.getBody();
+  var body = resolveMarkdownBody_(doc, req);
   var paragraphs = body.getParagraphs();
   var headings = [];
   paragraphs.forEach(function (p, i) {
@@ -241,7 +241,7 @@ function styleDoc_(doc, req) {
 }
 
 function deleteDoc_(doc, req) {
-  var body = doc.getBody();
+  var body = resolveMarkdownBody_(doc, req);
   if (req.startIndex != null && req.endIndex != null) {
     body.editAsText().deleteText(req.startIndex, req.endIndex);
     return { deleted: { startIndex: req.startIndex, endIndex: req.endIndex } };

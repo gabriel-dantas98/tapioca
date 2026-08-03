@@ -4,25 +4,37 @@ Self-service **Google Sheets**, **Google Docs**, and **Google Slides** automatio
 
 ## Install
 
-```bash
-gh gist clone 6ad86b6bfab840703ec214f228c3004b /tmp/google-sheets-agent-skill
-cd /tmp/google-sheets-agent-skill
-
-# Cursor (default)
-bash install.sh
-
-# Claude Code (same registry, separate skill path)
-bash install-claude.sh
-```
-
-Custom path:
+### As part of the `tapioca` plugin (preferred)
 
 ```bash
-bash install.sh ~/.cursor/skills/google-sheets-apps-script
-bash install.sh ~/.claude/skills/google-sheets-apps-script
+# Claude Code
+git clone https://github.com/gabriel-dantas98/tapioca ~/.claude/plugins/tapioca
+
+# Cursor
+git clone https://github.com/gabriel-dantas98/tapioca ~/.cursor/plugins/tapioca
 ```
 
-Gist files use **flat names** (`templates-Code.gs`, `docs-reference.md`, …). `install.sh` restores the directory layout.
+Restart the IDE (or `/reload-plugins` in Claude Code), then invoke `/tapioca:google-sheets-apps-script`.
+This is the source of truth — see the [repo root README](../../README.md) for the full plugin install flow.
+
+### Standalone (this skill only, no full plugin)
+
+Clone straight from GitHub — no gist involved, so you always get the current version:
+
+```bash
+git clone --depth 1 --filter=blob:none --sparse https://github.com/gabriel-dantas98/tapioca /tmp/tapioca-skill
+git -C /tmp/tapioca-skill sparse-checkout set skills/google-sheets-apps-script
+
+# Cursor
+cp -r /tmp/tapioca-skill/skills/google-sheets-apps-script ~/.cursor/skills/google-sheets-apps-script
+
+# Claude Code
+cp -r /tmp/tapioca-skill/skills/google-sheets-apps-script ~/.claude/skills/google-sheets-apps-script
+
+rm -rf /tmp/tapioca-skill
+```
+
+A plain `git clone` already produces the right directory layout, so no separate `install.sh` step is needed — just copy (or symlink) the folder into place.
 
 ## Shared config
 
@@ -53,16 +65,23 @@ bash scripts/clasp_bootstrap.sh \
 
 ## CLI highlights
 
+`SKILL_ROOT` depends on how you installed it — see the table in [SKILL.md](SKILL.md#runtime-paths-tapioca-plugin--standalone).
+
 ```bash
-# Cursor or Claude — adjust SKILL_ROOT
-CLI="$HOME/.cursor/skills/google-sheets-apps-script/scripts/sheets_agent.py"
+# tapioca plugin (Claude Code)
+CLI="$HOME/.claude/plugins/tapioca/skills/google-sheets-apps-script/scripts/sheets_agent.py"
+# tapioca plugin (Cursor)
+# CLI="$HOME/.cursor/plugins/tapioca/skills/google-sheets-apps-script/scripts/sheets_agent.py"
+# standalone install
 # CLI="$HOME/.claude/skills/google-sheets-apps-script/scripts/sheets_agent.py"
+# CLI="$HOME/.cursor/skills/google-sheets-apps-script/scripts/sheets_agent.py"
 
 python3 "$CLI" status --document-url "https://docs.google.com/document/d/.../edit"
 python3 "$CLI" status --presentation-url "https://docs.google.com/presentation/d/.../edit"
 python3 "$CLI" browser-auth
 python3 "$CLI" call --document-url "..." --payload '{"action":"listDocTabs"}'
 python3 "$CLI" call --document-url "..." --payload '{"action":"createDocTab","name":"New Tab"}'
+python3 "$CLI" call --presentation-url "..." --payload '{"action":"appendTextBox","slideIndex":0,"text":"Quarterly update","x":72,"y":72,"width":576,"height":48}'
 python3 "$CLI" upload --file image.png --document-url "..." --append
 python3 "$CLI" canvas-export --manifest report.canvas.json
 ```
@@ -82,7 +101,9 @@ python3 "$CLI" canvas-export --manifest report.canvas.json
 | `scripts/canvas_export/` | Agnostic PNG export |
 | `evals/` | Static + integration evals |
 
-## Maintainer: update gist
+## Maintainer: optional gist mirror
+
+The GitHub repo (this folder) is the source of truth — installs above never touch the gist. The gist is kept only as a legacy single-file mirror for tooling that can't clone a repo; it is **not** required for the plugin or standalone installs and drifts if not republished after a feature change:
 
 ```bash
 bash scripts/publish_gist.sh
