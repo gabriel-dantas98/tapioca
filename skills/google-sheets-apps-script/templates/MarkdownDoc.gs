@@ -8,9 +8,26 @@ function appendMarkdown_(doc, req) {
   requireDoc_(markdown, 'markdown');
   var body = resolveMarkdownBody_(doc, req);
   if (req.clear === true) {
-    body.clear();
+    clearMarkdownBody_(body);
   }
   return renderMarkdownIntoBody_(body, String(markdown), req);
+}
+
+function clearMarkdownBody_(body) {
+  while (body.getNumChildren() > 1) {
+    body.getChild(body.getNumChildren() - 1).removeFromParent();
+  }
+  if (body.getNumChildren() === 0) {
+    body.appendParagraph('');
+    return;
+  }
+  var child = body.getChild(0);
+  if (child.getType() === DocumentApp.ElementType.PARAGRAPH) {
+    child.asParagraph().setText('');
+    return;
+  }
+  body.appendParagraph('');
+  body.getChild(0).removeFromParent();
 }
 
 function appendTable_(doc, req) {
@@ -18,7 +35,7 @@ function appendTable_(doc, req) {
   if (!rows || !rows.length) {
     throw new Error('appendTable needs rows (2D array of strings)');
   }
-  var body = doc.getBody();
+  var body = resolveMarkdownBody_(doc, req);
   var table = body.appendTable(normalizeTableRows_(rows));
   styleTable_(table, req.headerRow !== false);
   return {
@@ -29,17 +46,37 @@ function appendTable_(doc, req) {
 
 function appendImage_(doc, req) {
   var blob = fetchImageBlob_(req);
-  var body = doc.getBody();
-  var paragraph = body.appendParagraph('');
-  var image = paragraph.appendInlineImage(blob);
-  applyImageSize_(image, req);
-  if (req.alt) {
-    var caption = body.appendParagraph(String(req.alt));
-    caption.editAsText().setItalic(true).setForegroundColor('#6b7280');
+  var body = resolveMarkdownBody_(doc, req);
+  // req.index (0-based body child index) inserts the image AT that position instead of
+  // appending to the end. Caption (if any) is inserted right after the image.
+  var atIndex = req.index != null ? Number(req.index) : null;
+  var paragraph;
+  var image;
+  if (atIndex != null && !isNaN(atIndex)) {
+    var n = body.getNumChildren();
+    if (atIndex < 0 || atIndex > n) {
+      throw new Error('appendImage index out of range: ' + atIndex + ' numChildren=' + n);
+    }
+    paragraph = body.insertParagraph(atIndex, '');
+    image = paragraph.appendInlineImage(blob);
+    applyImageSize_(image, req);
+    if (req.alt) {
+      var cap = body.insertParagraph(atIndex + 1, String(req.alt));
+      cap.editAsText().setItalic(true).setForegroundColor('#6b7280');
+    }
+  } else {
+    paragraph = body.appendParagraph('');
+    image = paragraph.appendInlineImage(blob);
+    applyImageSize_(image, req);
+    if (req.alt) {
+      var caption = body.appendParagraph(String(req.alt));
+      caption.editAsText().setItalic(true).setForegroundColor('#6b7280');
+    }
   }
   return {
     inserted: true,
     alt: req.alt || '',
+    index: atIndex,
     width: image.getWidth(),
     height: image.getHeight(),
   };

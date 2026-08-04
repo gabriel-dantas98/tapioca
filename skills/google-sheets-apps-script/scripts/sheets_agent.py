@@ -96,6 +96,14 @@ DOC_ACTIONS = {
     "docComment",
     "docReplyComment",
     "docResolveComment",
+    "deleteElements",
+    "deleteRange",
+    "docChildren",
+    "listChildren",
+    "readTables",
+    "editTableCell",
+    "replaceInTable",
+    "listDocTab",
 }
 
 DRIVE_UPLOAD_ACTIONS = {"uploadDriveFile", "shareDriveFile"}
@@ -813,14 +821,61 @@ def _browser_body_is_error_page(text: str) -> bool:
     return "página não encontrada" in lower or "page not found" in lower or "<title>error" in lower
 
 
+def _browser_body_is_transient(text: str) -> bool:
+    """Transient Google responses that should be retried, not surfaced.
+
+    The Apps Script /exec URL intermittently returns a Google Drive interstitial
+    ("Sorry, unable to open the file" / "Não foi possível abrir o arquivo") or a
+    throttling page instead of the JSON payload. These clear on retry.
+    """
+    t = (text or "").strip()
+    if not t:
+        return True
+    lower = t.lower()
+    markers = (
+        "não foi possível abrir o arquivo",
+        "nao foi possivel abrir o arquivo",
+        "unable to open the file",
+        "sorry, unable to open",
+        "service invoked too many times",
+        "try again later",
+        "temporarily unavailable",
+        "rate limit",
+    )
+    if any(m in lower for m in markers):
+        return True
+    # A bare "Drive" body with no JSON is the interstitial we keep hitting.
+    if lower == "drive" or (lower.startswith("drive") and len(t) < 80):
+        return True
+    return False
+
+
+def _looks_like_json(text: str) -> bool:
+    t = (text or "").lstrip()
+    return t.startswith("{") or t.startswith("[")
+
+
 def payload_requires_post(payload: dict) -> bool:
     action = normalize_action(payload.get("action", ""))
     return action in {"uploadDriveFile", "uploadAndAppendImage"}
 
 
-def run_browser_post(web_app_url: str, payload: dict, *, headless: bool) -> str:
+def run_browser_post(web_app_url: str, payload: dict, *, headless: bool, retries: int = 5) -> str:
+    """Call the Apps Script web app via the persistent browser session.
+
+    Retries transient Google Drive / throttling interstitials (which otherwise
+    surface as unparseable bodies) with backoff before giving up. This makes
+    every doc/sheet write reliable instead of failing ~half the time.
+    """
     sync_playwright = require_playwright()
     body_json = json.dumps({"payload": payload}, ensure_ascii=False)
+    # Always use the direct POST request over the browser session: it carries the
+    # same auth cookies but avoids the GET-navigation redirect through Drive that
+    # intermittently returns the "unable to open the file" interstitial (and is
+    # much faster than a full page navigation).
+    use_post = True
+    backoff = [1.5, 3.0, 5.0, 8.0, 12.0]
+    last_body = ""
 
     with sync_playwright() as playwright:
         context = playwright.chromium.launch_persistent_context(
@@ -829,39 +884,61 @@ def run_browser_post(web_app_url: str, payload: dict, *, headless: bool) -> str:
             args=["--disable-blink-features=AutomationControlled"],
         )
         page = context.pages[0] if context.pages else context.new_page()
+        try:
+            for attempt in range(retries):
+                try:
+                    if use_post:
+                        response = context.request.post(
+                            web_app_url,
+                            data=body_json,
+                            headers={"Content-Type": "application/json"},
+                            timeout=120_000,
+                        )
+                        body_text = response.text()
+                        current_url = web_app_url
+                        if response.status >= 400 and not _browser_body_is_transient(body_text):
+                            sys.exit(f"Web app POST failed ({response.status}): {body_text[:2000]}")
+                    else:
+                        call_url = build_browser_url(web_app_url, payload)
+                        page.goto(call_url, wait_until="domcontentloaded", timeout=120_000)
+                        page.wait_for_timeout(2000)
+                        current_url = page.url
+                        body_text = page.locator("body").inner_text(timeout=30_000)
+                except Exception as exc:  # transient nav/timeout — retry
+                    last_body = f"(exception) {exc}"
+                    if attempt < retries - 1:
+                        time.sleep(backoff[min(attempt, len(backoff) - 1)])
+                        continue
+                    break
 
-        if payload_requires_post(payload) or len(body_json) > 7000:
-            response = context.request.post(
-                web_app_url,
-                data=body_json,
-                headers={"Content-Type": "application/json"},
-                timeout=120_000,
-            )
-            if response.status >= 400:
-                context.close()
-                sys.exit(f"Web app POST failed ({response.status}): {response.text()[:2000]}")
-            body_text = response.text()
-            current_url = web_app_url
-        else:
-            call_url = build_browser_url(web_app_url, payload)
-            page.goto(call_url, wait_until="domcontentloaded", timeout=120_000)
-            page.wait_for_timeout(1500)
-            current_url = page.url
-            body_text = page.locator("body").inner_text(timeout=30_000)
+                last_body = body_text
 
-        context.close()
+                # Definitive states — do not retry.
+                if _browser_body_is_login_page(body_text, current_url):
+                    sys.exit(
+                        "Google login required. Run:\n"
+                        f"  {sys.argv[0]} browser-auth"
+                    )
+                if _browser_body_is_error_page(body_text):
+                    sys.exit(
+                        "Web app returned not found. Redeploy Apps Script, then:\n"
+                        f"  {sys.argv[0]} register --spreadsheet-url ... --web-app-url NEW_URL"
+                    )
 
-        if _browser_body_is_login_page(body_text, current_url):
-            sys.exit(
-                "Google login required. Run:\n"
-                f"  {sys.argv[0]} browser-auth"
-            )
-        if _browser_body_is_error_page(body_text):
-            sys.exit(
-                "Web app returned not found. Redeploy Apps Script, then:\n"
-                f"  {sys.argv[0]} register --spreadsheet-url ... --web-app-url NEW_URL"
-            )
-        return body_text
+                # Good response.
+                if _looks_like_json(body_text) and not _browser_body_is_transient(body_text):
+                    return body_text
+
+                # Transient / unparseable — back off and retry.
+                if attempt < retries - 1:
+                    time.sleep(backoff[min(attempt, len(backoff) - 1)])
+        finally:
+            context.close()
+
+    sys.exit(
+        f"Browser call failed after {retries} attempts (transient Google Drive / throttling "
+        f"interstitial). Last response: {last_body.strip()[:300]!r}"
+    )
 
 
 def run_browser_session(url: str, *, headless: bool, wait_seconds: int) -> str:
@@ -1220,6 +1297,10 @@ def build_upload_payload(path: Path, args: argparse.Namespace) -> dict:
         payload["alt"] = args.alt or path.stem
         if args.max_width:
             payload["maxWidth"] = int(args.max_width)
+        if getattr(args, "tab_id", None):
+            payload["tabId"] = args.tab_id
+        if getattr(args, "index", None) is not None:
+            payload["index"] = int(args.index)
     else:
         payload["action"] = "uploadDriveFile"
     return payload
@@ -1498,6 +1579,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     upload.add_argument("--alt", help="Caption when using --append")
     upload.add_argument("--max-width", type=int, help="Max image width in points when using --append")
+    upload.add_argument("--tab-id", help="Target doc tab id (t.xxxx) when using --append")
+    upload.add_argument(
+        "--index",
+        type=int,
+        help="0-based body child index to insert the image at (default: append to end)",
+    )
     upload.add_argument("--show-browser", action="store_true")
 
     canvas_export = sub.add_parser(

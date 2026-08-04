@@ -63,11 +63,13 @@ python3 .../sheets_agent.py status --spreadsheet-url "https://docs.google.com/sp
 |--------|---------|
 | **`appendMarkdown`** | **Preferred** — render markdown block at end (`markdown` or `text`) |
 | `appendTable` | 2D `rows` array → styled table (`headerRow` default true) |
-| `appendImage` | Image from public `url` or `driveFileId` (+ optional `maxWidth`, `alt`) |
+| `appendImage` | Image from public `url` or `driveFileId` (+ optional `maxWidth`, `alt`); pass `index` (0-based body child index) to insert at a position instead of appending, `tabId` to target a doc tab |
 | `readDoc` | full text + optional paragraph structure |
-| `listDoc` | headings, paragraph count |
+| `listDoc` | headings, paragraph count (heading `index` is a **paragraph** index, not a body-child index) |
+| `docChildren` / `listChildren` | list every body child with its 0-based **child index**, type, heading, and text preview — the map you need to compute safe `startChild`/`endChild` for `deleteElements` (paragraph indices from `listDoc` do NOT match child indices when tables/images exist); tab-aware via `tabId` |
 | `appendDoc` | single plain paragraph only (fallback) |
 | `insertDoc` / `replaceDoc` / `styleDoc` / `commentDoc` / `deleteDoc` | surgical edits |
+| `deleteElements` / `deleteRange` | delete a contiguous range of top-level body children by index (`startChild`, `endChild`, inclusive, 0-based); tab-aware via `tabId`; keeps the body non-empty. Google Docs forbids removing the **terminal** paragraph of a section — insert content after it first, or exclude it from the range |
 | `readDocComments` | read native Google Docs comment threads (+ replies) |
 | `replyDocComment` | reply in a native comment thread (`commentId` + `text`) |
 | `resolveDocComment` | mark thread resolved (`commentId`, optional `resolved`) |
