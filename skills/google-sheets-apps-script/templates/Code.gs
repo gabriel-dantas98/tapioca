@@ -51,7 +51,7 @@ function doGet(e) {
   if (!encoded) {
     return respond_({
       ok: true,
-      version: '2.6.0',
+      version: '2.7.0',
       entrypoint: 'runApi',
       mode: 'browser-get',
       targets: ['spreadsheet', 'document'],
@@ -62,10 +62,11 @@ function doGet(e) {
       ],
       docActions: [
         'readDoc', 'listDoc', 'appendDoc', 'insertDoc', 'replaceDoc',
-        'styleDoc', 'deleteDoc', 'commentDoc', 'readDocComments', 'replyDocComment',
+        'styleDoc', 'deleteDoc', 'deleteElements', 'deleteRange', 'docChildren', 'listChildren', 'commentDoc', 'readDocComments', 'replyDocComment',
         'resolveDocComment', 'appendMarkdown', 'appendTable',
         'appendImage', 'uploadAndAppendImage', 'batch',
         'listDocTabs', 'createDocTab', 'renameDocTab',
+        'readTables', 'editTableCell', 'replaceInTable',
       ],
     });
   }

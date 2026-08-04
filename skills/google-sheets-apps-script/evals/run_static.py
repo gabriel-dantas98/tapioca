@@ -30,7 +30,11 @@ DOCS_FUNCTIONS = (
     "function readDoc_",
     "function appendDoc_",
     "function replaceDoc_",
+    "function deleteElements_",
+    "function docChildren_",
     "case 'appendMarkdown'",
+    "case 'deleteElements'",
+    "case 'docChildren'",
 )
 
 MARKDOWN_FUNCTIONS = (
@@ -46,7 +50,7 @@ def check_code_gs() -> list[dict]:
     results = []
     for fn in REQUIRED_FUNCTIONS:
         results.append({"check": f"Code.gs has {fn}", "passed": fn in text})
-    results.append({"check": "Code.gs version 2.6.0", "passed": "2.6.0" in text})
+    results.append({"check": "Code.gs version 2.7.0", "passed": "2.7.0" in text})
     docs = DOCS_GS.read_text()
     for fn in DOCS_FUNCTIONS:
         results.append({"check": f"Docs.gs has {fn}", "passed": fn in docs})
