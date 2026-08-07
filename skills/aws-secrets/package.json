@@ -6,12 +6,18 @@
   "engines": {
     "node": ">=22"
   },
+  "bin": {
+    "tapioca": "dist/index.js"
+  },
   "scripts": {
+    "build": "npm run build:cli",
+    "build:cli": "tsup --config tsup.config.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/node": "^26.1.2",
+    "tsup": "^8.5.1",
     "typescript": "^7.0.2",
     "vitest": "^4.1.10"
   },
@@ -19,6 +25,7 @@
     "@aws-sdk/client-secrets-manager": "^3.1105.0",
     "@aws-sdk/client-sts": "^3.1105.0",
     "@aws-sdk/credential-providers": "^3.1105.0",
-    "@smithy/shared-ini-file-loader": "^4.6.16"
+    "@smithy/shared-ini-file-loader": "^4.6.16",
+    "commander": "^15.0.0"
   }
 }
