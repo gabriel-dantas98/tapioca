@@ -14,5 +14,11 @@
     "@types/node": "^26.1.2",
     "typescript": "^7.0.2",
     "vitest": "^4.1.10"
+  },
+  "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.1105.0",
+    "@aws-sdk/client-sts": "^3.1105.0",
+    "@aws-sdk/credential-providers": "^3.1105.0",
+    "@smithy/shared-ini-file-loader": "^4.6.16"
   }
 }
