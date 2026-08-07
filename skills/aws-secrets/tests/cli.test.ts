@@ -106,6 +106,12 @@ describe("tapioca secrets CLI", () => {
     expect(help).not.toContain("run");
   });
 
+  it.each(["delete", "run"])("rejects the forbidden %s command without exiting the process", async (command) => {
+    const state = harness();
+    await expect(runCli(["node", "tapioca", "secrets", command], state.dependencies)).resolves.not.toBe(0);
+    expect(state.stderr.join("\n")).toContain(`unknown command '${command}'`);
+  });
+
   it("prints doctor identity without secrets", async () => {
     const state = harness();
     await expect(

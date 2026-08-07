@@ -41,18 +41,26 @@ tapioca/
 │   ├── usabilidade-br/
 │   │   ├── SKILL.md
 │   │   └── DESIGN.md
-│   └── multi-gen/
+│   ├── multi-gen/
+│   │   ├── SKILL.md
+│   │   ├── DESIGN.md
+│   │   ├── run_engines.py
+│   │   ├── build_preview.py
+│   │   └── tests/smoke_test.py
+│   ├── google-sheets-apps-script/
+│   │   ├── SKILL.md
+│   │   ├── DESIGN.md
+│   │   ├── wizard.md
+│   │   ├── scripts/sheets_agent.py
+│   │   ├── templates/
+│   │   └── evals/
+│   └── aws-secrets/
 │       ├── SKILL.md
 │       ├── DESIGN.md
-│       ├── run_engines.py
-│       ├── build_preview.py
-│       └── tests/smoke_test.py
-│   └── google-sheets-apps-script/
-│       ├── SKILL.md
-│       ├── DESIGN.md
-│       ├── wizard.md
-│       ├── scripts/sheets_agent.py
-│       ├── templates/
+│       ├── scripts/bootstrap.sh
+│       ├── src/
+│       ├── ui/
+│       ├── tests/
 │       └── evals/
 └── agents/
     ├── humanizer-br.md
@@ -97,6 +105,14 @@ Invocação: `/tapioca:humanizer-br <texto>` ou via menção natural ("humanize 
 2. **Maritaca rewrite** (opcional): Claude faz a **detecção** dos padrões, mas o **rewrite final** é delegado ao modelo `sabia-3` da [Maritaca](https://www.maritaca.ai), treinado em PT-BR. Ativado quando `MARITACA_API_KEY` está no ambiente. Endpoint: `https://chat.maritaca.ai/api/chat/completions`, header `Authorization: Key <token>`.
 
 Ver [`skills/humanizer-br/SKILL.md`](./skills/humanizer-br/SKILL.md) para o catálogo completo de padrões.
+
+### `aws-secrets`
+
+Abstrai o AWS Secrets Manager com experiência semelhante ao 1Password, sem criar um vault paralelo. Entrega a CLI `tapioca secrets` e uma UI local somente leitura para macOS. Paths usam exatamente `<domain>/<env>/<product>/<key>`; autenticação usa `aws login` e profiles nativos.
+
+A CLI lista, lê, cria, edita, materializa `.env.template` e abre a UI. JSON é validado e armazenado em base64 com tags de conteúdo. Não existe `run`; cada cliente carrega seu próprio ambiente. Não existe delete na CLI ou UI; exclusões são feitas diretamente no console AWS.
+
+Bootstrap: `bash skills/aws-secrets/scripts/bootstrap.sh`. Ver [`skills/aws-secrets/SKILL.md`](./skills/aws-secrets/SKILL.md), [`skills/aws-secrets/DESIGN.md`](./skills/aws-secrets/DESIGN.md) e os evals em `skills/aws-secrets/evals/`.
 
 ### `google-sheets-apps-script`
 

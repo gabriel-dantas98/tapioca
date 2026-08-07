@@ -16,6 +16,7 @@ O harness mora em `.agents/skills/smoke-test-skills/`. Ele e a fonte unica: tant
 # so oneshot
 .agents/skills/smoke-test-skills/run.sh oneshot humanizer-br claude
 .agents/skills/smoke-test-skills/run.sh oneshot humanizer-br cursor
+.agents/skills/smoke-test-skills/run.sh oneshot aws-secrets both
 ```
 
 ## Pre-requisitos
@@ -34,4 +35,4 @@ O harness mora em `.agents/skills/smoke-test-skills/`. Ele e a fonte unica: tant
 
 ## Contrato de verificacao
 
-Cada skill registra no `run.sh` o par (prompt, verificador). `humanizer-br` usa `scripts/check-output.sh` (>= 8 padroes detectados, sem emoji decorativo). Skill nova so entra no catalogo de oneshot quando tem verificador deterministico.
+Cada skill registra no `run.sh` o par (prompt, verificador). `humanizer-br` usa `scripts/check-output.sh` (>= 8 padroes detectados, sem emoji decorativo). `aws-secrets` usa `scripts/check-aws-secrets-output.sh` para validar onboarding, comandos, path, base64 e ausência dos comandos proibidos. Skill nova so entra no catalogo de oneshot quando tem verificador deterministico.

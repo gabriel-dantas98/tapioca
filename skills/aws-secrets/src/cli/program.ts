@@ -42,7 +42,10 @@ function isJson(tags: Readonly<Record<string, string>>): boolean {
 export function createProgram(dependencies: CliDependencies): Command {
   const program = new Command("tapioca");
   program.description("Tapioca developer tools").showHelpAfterError();
-  const secrets = program.command("secrets").description("Use AWS Secrets Manager like a vault");
+  const secrets = program
+    .command("secrets")
+    .description("Use AWS Secrets Manager like a vault")
+    .exitOverride();
 
   awsOptions(secrets.command("doctor").description("Validate AWS login and access")).action(
     async (_options, command: Command) => {
@@ -192,10 +195,15 @@ function exitCode(error: unknown): number {
 export async function runCli(argv: string[], dependencies: CliDependencies): Promise<number> {
   const program = createProgram(dependencies);
   program.exitOverride();
-  program.configureOutput({
-    writeOut: (value) => dependencies.io.writeOut(value.trimEnd()),
-    writeErr: (value) => dependencies.io.writeError(value.trimEnd()),
-  });
+  const output = {
+    writeOut: (value: string) => dependencies.io.writeOut(value.trimEnd()),
+    writeErr: (value: string) => dependencies.io.writeError(value.trimEnd()),
+  };
+  const configureOutput = (command: Command): void => {
+    command.configureOutput(output);
+    for (const child of command.commands) configureOutput(child);
+  };
+  configureOutput(program);
   try {
     await program.parseAsync(argv);
     return 0;

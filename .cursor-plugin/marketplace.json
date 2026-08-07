@@ -6,13 +6,13 @@
     "email": "gabsdevops@gmail.com"
   },
   "metadata": {
-    "description": "We bring the base. You pick the filling. Agent skills for Cursor (humanizer-br, usabilidade-br, multi-gen, google-sheets-apps-script)."
+    "description": "We bring the base. You pick the filling. Agent skills for Cursor (humanizer-br, usabilidade-br, multi-gen, google-sheets-apps-script, aws-secrets)."
   },
   "plugins": [
     {
       "name": "tapioca",
       "source": "./",
-      "description": "Agent skills and companions: humanizer-br, usabilidade-br, multi-gen, google-sheets-apps-script."
+      "description": "Agent skills and companions: humanizer-br, usabilidade-br, multi-gen, google-sheets-apps-script, aws-secrets."
     }
   ]
 }
