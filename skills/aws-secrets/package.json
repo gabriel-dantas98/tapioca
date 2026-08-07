@@ -10,15 +10,23 @@
     "tapioca": "dist/index.js"
   },
   "scripts": {
-    "build": "npm run build:cli",
+    "build": "npm run build:cli && npm run build:ui",
     "build:cli": "tsup --config tsup.config.ts",
+    "build:ui": "vite build --config vite.config.ts",
+    "dev:ui": "vite --config vite.config.ts",
     "test": "vitest run",
+    "test:ui": "env -u NO_COLOR playwright test",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@types/node": "^26.1.2",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^6.0.5",
     "tsup": "^8.5.1",
     "typescript": "^7.0.2",
+    "vite": "^8.2.1",
     "vitest": "^4.1.10"
   },
   "dependencies": {
@@ -29,6 +37,8 @@
     "@smithy/shared-ini-file-loader": "^4.6.16",
     "commander": "^15.0.0",
     "fastify": "^5.11.2",
-    "open": "^11.0.0"
+    "open": "^11.0.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
   }
 }
