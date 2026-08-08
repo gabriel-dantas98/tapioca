@@ -121,3 +121,23 @@ test("shows the exact aws login recovery command", async ({ page }) => {
   await page.goto("/#session-token");
   await expect(page.locator("code").getByText("aws login --profile production", { exact: true })).toBeVisible();
 });
+
+test("shows actionable recovery when the session expires during reveal", async ({ page }) => {
+  await mockApi(page);
+  await page.unroute("**/api/reveal");
+  await page.route("**/api/reveal", async (route) => {
+    await route.fulfill({
+      status: 401,
+      contentType: "application/json",
+      body: JSON.stringify({
+        error: "Sessão expirada. Execute: aws login --profile production",
+        code: "AUTH_REQUIRED",
+      }),
+    });
+  });
+  await page.goto("/#session-token");
+  await page.getByRole("button", { name: "Revelar por 30s" }).click();
+  await expect(
+    page.locator("code").getByText("aws login --profile production", { exact: true }),
+  ).toBeVisible();
+});

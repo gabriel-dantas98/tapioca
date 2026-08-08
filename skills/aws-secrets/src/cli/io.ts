@@ -18,6 +18,21 @@ async function readStream(stream: NodeJS.ReadableStream): Promise<string> {
   return Buffer.concat(chunks).toString("utf8");
 }
 
+export function appendRawSecretBytes(
+  bytes: number[],
+  chunk: Buffer,
+): "continue" | "submit" | "cancel" {
+  for (const byte of chunk) {
+    if (byte === 3) return "cancel";
+    if (byte === 10 || byte === 13) return "submit";
+    if (byte === 127) {
+      while (bytes.length > 0 && (bytes.at(-1)! & 0xc0) === 0x80) bytes.pop();
+      bytes.pop();
+    } else bytes.push(byte);
+  }
+  return "continue";
+}
+
 async function hiddenPrompt(label: string): Promise<string> {
   if (!process.stdin.isTTY || !process.stdin.setRawMode) {
     throw new Error("Use --stdin quando o terminal interativo não estiver disponível.");
@@ -26,7 +41,7 @@ async function hiddenPrompt(label: string): Promise<string> {
   process.stdin.setRawMode(true);
   process.stdin.resume();
   return new Promise((resolve, reject) => {
-    let value = "";
+    const valueBytes: number[] = [];
     const finish = (): void => {
       process.stdin.off("data", onData);
       process.stdin.setRawMode?.(false);
@@ -34,19 +49,13 @@ async function hiddenPrompt(label: string): Promise<string> {
       process.stdout.write("\n");
     };
     const onData = (chunk: Buffer): void => {
-      for (const byte of chunk) {
-        if (byte === 3) {
-          finish();
-          reject(new Error("Entrada cancelada."));
-          return;
-        }
-        if (byte === 10 || byte === 13) {
-          finish();
-          resolve(value);
-          return;
-        }
-        if (byte === 127) value = value.slice(0, -1);
-        else value += String.fromCharCode(byte);
+      const action = appendRawSecretBytes(valueBytes, chunk);
+      if (action === "cancel") {
+        finish();
+        reject(new Error("Entrada cancelada."));
+      } else if (action === "submit") {
+        finish();
+        resolve(Buffer.from(valueBytes).toString("utf8"));
       }
     };
     process.stdin.on("data", onData);

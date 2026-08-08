@@ -1,5 +1,5 @@
 import { constants } from "node:fs";
-import { access, chmod, open, readFile, rename, unlink } from "node:fs/promises";
+import { access, chmod, link, open, readFile, rename, unlink } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { randomUUID } from "node:crypto";
 
@@ -75,8 +75,21 @@ export async function injectTemplate(
       await file.close();
     }
     await chmod(temporaryPath, 0o600);
-    await rename(temporaryPath, outputPath);
-    temporaryCreated = false;
+    if (options.force) {
+      await rename(temporaryPath, outputPath);
+      temporaryCreated = false;
+    } else {
+      try {
+        await link(temporaryPath, outputPath);
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === "EEXIST") {
+          throw new InjectionError("OUTPUT_EXISTS", `${outputPath} já existe; use --force.`);
+        }
+        throw error;
+      }
+      await unlink(temporaryPath);
+      temporaryCreated = false;
+    }
   } finally {
     if (temporaryCreated) await unlink(temporaryPath).catch(() => undefined);
   }

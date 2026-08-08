@@ -190,6 +190,30 @@ describe("tapioca secrets CLI", () => {
     });
   });
 
+  it("rejects changing an existing text secret to JSON during edit", async () => {
+    const state = harness(new FakeGateway(), '{"enabled":true}');
+    state.gateway.values.set("platform/prod/worker/config", {
+      name: "platform/prod/worker/config",
+      value: "plain-text",
+      tags: {},
+    });
+    const code = await runCli(
+      [
+        "node",
+        "tapioca",
+        "secrets",
+        "edit",
+        "platform/prod/worker/config",
+        "--stdin",
+        "--json",
+      ],
+      state.dependencies,
+    );
+    expect(code).toBe(2);
+    expect(state.gateway.edited).toEqual([]);
+    expect(state.stderr.join("\n")).toContain("formato");
+  });
+
   it("injects a template through the real atomic writer", async () => {
     const directory = await mkdtemp(join(tmpdir(), "tapioca-cli-"));
     cleanup.push(directory);

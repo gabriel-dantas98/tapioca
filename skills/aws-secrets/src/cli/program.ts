@@ -3,7 +3,12 @@ import { Command, CommanderError } from "commander";
 import { TapiocaSecretsError } from "../aws/errors.js";
 import { parseSecretPath, parseSecretPrefix } from "../domain/path.js";
 import type { SecretsGateway } from "../domain/types.js";
-import { decodeJsonValue, prepareJsonValue, prepareTextValue } from "../domain/value.js";
+import {
+  decodeJsonValue,
+  prepareJsonValue,
+  prepareTextValue,
+  ValueValidationError,
+} from "../domain/value.js";
 import { injectTemplate } from "../templates/inject.js";
 import type { CliIo } from "./io.js";
 import { readValueSource } from "./io.js";
@@ -126,6 +131,12 @@ export function createProgram(dependencies: CliDependencies): Command {
       parseSecretPath(path);
       const gateway = await dependencies.gatewayFor(selectedAwsOptions(command));
       const current = await gateway.getSecret(path);
+      if (options.json && !isJson(current.tags)) {
+        throw new ValueValidationError(
+          "FORMAT_CHANGE_UNSUPPORTED",
+          "Não é possível alterar o formato de um secret existente; crie outro path como JSON.",
+        );
+      }
       const source = await readValueSource(options, dependencies.io);
       const prepared = options.json || isJson(current.tags)
         ? prepareJsonValue(source)

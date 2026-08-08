@@ -73,4 +73,19 @@ describe("dotenv templates", () => {
       renderTemplate(parsed, new Map([["payments/prod/api/token", "line 1\nline 2"]])),
     ).toThrowError(expect.objectContaining({ code: "MULTILINE_VALUE" }));
   });
+
+  it("quotes parser-sensitive values without changing their bytes", () => {
+    const parsed = parseTemplate("TOKEN=secret://payments/prod/api/token\n");
+    const value = '  hash# double" dollar$ backslash\\ unicode-ç  ';
+    expect(renderTemplate(parsed, new Map([["payments/prod/api/token", value]]))).toBe(
+      `TOKEN='${value}'\n`,
+    );
+  });
+
+  it("rejects values that cannot be represented portably in dotenv", () => {
+    const parsed = parseTemplate("TOKEN=secret://payments/prod/api/token\n");
+    expect(() =>
+      renderTemplate(parsed, new Map([["payments/prod/api/token", "don't # truncate"]])),
+    ).toThrowError(expect.objectContaining({ code: "UNSAFE_VALUE" }));
+  });
 });

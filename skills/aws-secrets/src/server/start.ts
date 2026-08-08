@@ -26,11 +26,15 @@ export async function startUiServer(options: StartUiOptions): Promise<void> {
     region: doctor.region,
   });
   const assetsDir = options.assetsDir ?? join(dirname(fileURLToPath(import.meta.url)), "ui");
+  let assetsAvailable = true;
   try {
     await access(assetsDir);
-    await app.register(fastifyStatic, { root: assetsDir, wildcard: false });
-    app.get("/", async (_request, reply) => reply.sendFile("index.html"));
   } catch {
+    assetsAvailable = false;
+  }
+  if (assetsAvailable) {
+    await app.register(fastifyStatic, { root: assetsDir, wildcard: false });
+  } else {
     app.get("/", async (_request, reply) => {
       await reply.type("text/plain").send("UI não encontrada neste build.");
     });
@@ -38,16 +42,19 @@ export async function startUiServer(options: StartUiOptions): Promise<void> {
 
   const address = await app.listen({ host: "127.0.0.1", port: 0 });
   const url = `${address}/#${sessionToken}`;
-  await (options.openBrowser ?? open)(url);
+  try {
+    await (options.openBrowser ?? open)(url);
 
-  await new Promise<void>((resolve) => {
-    const stop = (): void => resolve();
-    if (options.signal?.aborted) resolve();
-    else if (options.signal) options.signal.addEventListener("abort", stop, { once: true });
-    else {
-      process.once("SIGINT", stop);
-      process.once("SIGTERM", stop);
-    }
-  });
-  await app.close();
+    await new Promise<void>((resolve) => {
+      const stop = (): void => resolve();
+      if (options.signal?.aborted) resolve();
+      else if (options.signal) options.signal.addEventListener("abort", stop, { once: true });
+      else {
+        process.once("SIGINT", stop);
+        process.once("SIGTERM", stop);
+      }
+    });
+  } finally {
+    await app.close();
+  }
 }

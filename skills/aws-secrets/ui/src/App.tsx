@@ -115,7 +115,13 @@ function SecretList({
   );
 }
 
-function SecretDetail({ item }: { item: SecretItem | undefined }): React.JSX.Element {
+function SecretDetail({
+  item,
+  onError,
+}: {
+  item: SecretItem | undefined;
+  onError: (error: ApiError) => void;
+}): React.JSX.Element {
   const [revealed, setRevealed] = useState<RevealedSecret>();
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
@@ -140,6 +146,9 @@ function SecretDetail({ item }: { item: SecretItem | undefined }): React.JSX.Ele
     setNotice("");
     try {
       setRevealed(await api.reveal(item.name));
+    } catch (caught) {
+      if (caught instanceof ApiError) onError(caught);
+      else setNotice("Não foi possível revelar o secret.");
     } finally {
       setBusy(false);
     }
@@ -154,6 +163,9 @@ function SecretDetail({ item }: { item: SecretItem | undefined }): React.JSX.Ele
         : fresh.value;
       await navigator.clipboard.writeText(value);
       setNotice(decoded ? "JSON copiado." : "Secret copiado.");
+    } catch (caught) {
+      if (caught instanceof ApiError) onError(caught);
+      else setNotice("Não foi possível copiar o secret.");
     } finally {
       setBusy(false);
     }
@@ -285,7 +297,7 @@ export function App(): React.JSX.Element {
           onEnvironment={setEnvironment}
         />
         <SecretList items={filtered} selected={selected?.name} onSelect={(item) => setSelectedName(item.name)} />
-        <SecretDetail item={selected} />
+        <SecretDetail item={selected} onError={setError} />
       </div>
     </main>
   );

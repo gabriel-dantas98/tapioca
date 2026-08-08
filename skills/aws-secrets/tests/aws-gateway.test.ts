@@ -32,6 +32,8 @@ describe("AwsSecretsGateway", () => {
             LastChangedDate: new Date("2026-08-01T00:00:00Z"),
             Tags: [{ Key: "team", Value: "payments" }],
           },
+          { Name: "payments/production/api/token", ARN: "arn:wrong-environment" },
+          { Name: "payments/prod2/api/token", ARN: "arn:wrong-prefix" },
           { Name: "platform/prod/worker/config", ARN: "arn:config" },
         ],
       },
@@ -128,6 +130,34 @@ describe("AwsSecretsGateway", () => {
     expect(
       (secrets.commands[0] as { input: { VersionStages: string[] } }).input.VersionStages,
     ).toEqual(["AWSCURRENT"]);
+  });
+
+  it("does not perform a non-atomic tag mutation while editing JSON", async () => {
+    const secrets = new FakeClient({
+      PutSecretValueCommand: {
+        ARN: "arn:config",
+        Name: "platform/prod/worker/config",
+        VersionId: "version-2",
+      },
+    });
+    const gateway = new AwsSecretsGateway(
+      { profile: "production", region: "us-east-1" },
+      { secrets, sts: new FakeClient({}) },
+    );
+
+    await expect(
+      gateway.putSecretValue({
+        name: "platform/prod/worker/config",
+        value: "eyJlbmFibGVkIjp0cnVlfQ==",
+        tags: {
+          "tapioca:encoding": "base64",
+          "tapioca:content-type": "application/json",
+        },
+      }),
+    ).resolves.toMatchObject({ name: "platform/prod/worker/config" });
+    expect(secrets.commands.map((command) => command?.constructor.name)).toEqual([
+      "PutSecretValueCommand",
+    ]);
   });
 
   it("reports identity and list capability in doctor", async () => {

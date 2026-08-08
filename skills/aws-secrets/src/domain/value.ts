@@ -8,7 +8,11 @@ export interface PreparedValue {
 }
 
 export class ValueValidationError extends Error {
-  readonly code: "INVALID_JSON" | "VALUE_TOO_LARGE" | "CORRUPT_JSON_VALUE";
+  readonly code:
+    | "INVALID_JSON"
+    | "VALUE_TOO_LARGE"
+    | "CORRUPT_JSON_VALUE"
+    | "FORMAT_CHANGE_UNSUPPORTED";
 
   constructor(code: ValueValidationError["code"], message: string) {
     super(message);

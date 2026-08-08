@@ -56,10 +56,12 @@ SERVICE_CONFIG=secret://platform/prod/worker/service-config
 ```
 
 O `inject` resolve tudo antes de gravar, exige destino ignorado pelo Git e cria o arquivo com modo `0600`.
+Valores sensíveis a parsers dotenv são colocados entre aspas simples. Se um valor não tiver representação portátil, orientar o usuário a armazená-lo em base64; nunca gerar um `.env` semanticamente diferente.
 
 ## Tratar JSON
 
 Usar `--json` na criação para validar, compactar e armazenar JSON em base64. A UI revela JSON decodificado e copia o base64 original por padrão.
+Durante `edit`, preservar o formato existente. Para converter texto em JSON, criar outro path; não tentar trocar valor e tags em duas operações AWS não atômicas.
 
 ## Proteger valores
 

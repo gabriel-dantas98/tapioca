@@ -9,6 +9,10 @@ function validToken(actual: string | undefined, expected: string): boolean {
   return actualBuffer.length === expectedBuffer.length && timingSafeEqual(actualBuffer, expectedBuffer);
 }
 
+function isLoopbackAuthority(value: string | undefined): boolean {
+  return value !== undefined && /^127\.0\.0\.1(?::\d+)?$/.test(value);
+}
+
 export function registerSecurity(app: FastifyInstance, sessionToken: string): void {
   app.addHook("onRequest", async (request, reply) => {
     if (!request.url.startsWith("/api/")) return;
@@ -16,9 +20,18 @@ export function registerSecurity(app: FastifyInstance, sessionToken: string): vo
       await reply.code(401).send({ error: "Sessão local inválida." });
       return;
     }
+    if (!isLoopbackAuthority(request.headers.host)) {
+      await reply.code(403).send({ error: "Host local inválido." });
+      return;
+    }
     const origin = request.headers.origin;
-    if (!origin || !/^http:\/\/127\.0\.0\.1(?::\d+)?$/.test(origin)) {
+    if (origin && !/^http:\/\/127\.0\.0\.1(?::\d+)?$/.test(origin)) {
       await reply.code(403).send({ error: "Origem local inválida." });
+      return;
+    }
+    const fetchSite = request.headers["sec-fetch-site"];
+    if (fetchSite && fetchSite !== "same-origin") {
+      await reply.code(403).send({ error: "Contexto de navegação inválido." });
     }
   });
 

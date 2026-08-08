@@ -5,7 +5,6 @@ import {
   ListSecretsCommand,
   PutSecretValueCommand,
   SecretsManagerClient,
-  TagResourceCommand,
   type CreateSecretCommandOutput,
   type DescribeSecretCommandOutput,
   type GetSecretValueCommandOutput,
@@ -117,7 +116,10 @@ export class AwsSecretsGateway implements SecretsGateway {
         new ListSecretsCommand(nextToken ? { NextToken: nextToken } : {}),
       );
       for (const secret of output.SecretList ?? []) {
-        if (!secret.Name || (prefix && !secret.Name.startsWith(prefix))) continue;
+        if (
+          !secret.Name ||
+          (prefix && secret.Name !== prefix && !secret.Name.startsWith(`${prefix}/`))
+        ) continue;
         const metadata: SecretMetadata = {
           name: secret.Name,
           tags: tagsFromAws(secret.Tags),
@@ -183,12 +185,6 @@ export class AwsSecretsGateway implements SecretsGateway {
         VersionStages: ["AWSCURRENT"],
       }),
     );
-    if (Object.keys(input.tags).length > 0) {
-      await this.send(
-        this.clients.secrets,
-        new TagResourceCommand({ SecretId: input.name, Tags: tagsToAws(input.tags) }),
-      );
-    }
     const result: SecretMetadata = { name: output.Name ?? input.name, tags: input.tags };
     if (output.ARN) result.arn = output.ARN;
     return result;

@@ -1,3 +1,7 @@
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
 import { afterEach, describe, expect, it } from "vitest";
 
 import type {
@@ -67,9 +71,13 @@ class ReadOnlyGateway implements SecretsGateway {
 }
 
 const apps: Array<ReturnType<typeof buildServer>> = [];
+const temporaryDirectories: string[] = [];
 
 afterEach(async () => {
   await Promise.all(apps.splice(0).map((app) => app.close()));
+  await Promise.all(
+    temporaryDirectories.splice(0).map((path) => rm(path, { recursive: true, force: true })),
+  );
 });
 
 function setup(): { app: ReturnType<typeof buildServer>; gateway: ReadOnlyGateway } {
@@ -85,6 +93,7 @@ function setup(): { app: ReturnType<typeof buildServer>; gateway: ReadOnlyGatewa
 }
 
 const authorizedHeaders = {
+  host: "127.0.0.1:54321",
   origin: "http://127.0.0.1:54321",
   "x-tapioca-session": "session-token",
 };
@@ -101,6 +110,24 @@ describe("local secrets API", () => {
       headers: { ...authorizedHeaders, origin: "https://evil.example" },
     });
     expect(foreign.statusCode).toBe(403);
+
+    const rebound = await app.inject({
+      method: "GET",
+      url: "/api/secrets",
+      headers: { ...authorizedHeaders, host: "attacker.example" },
+    });
+    expect(rebound.statusCode).toBe(403);
+
+    const sameOriginGet = await app.inject({
+      method: "GET",
+      url: "/api/secrets",
+      headers: {
+        host: "127.0.0.1:54321",
+        "sec-fetch-site": "same-origin",
+        "x-tapioca-session": "session-token",
+      },
+    });
+    expect(sameOriginGet.statusCode).toBe(200);
   });
 
   it("lists metadata without fetching values", async () => {
@@ -191,5 +218,35 @@ describe("local secrets API", () => {
     });
     expect(openedUrl).toMatch(/^http:\/\/127\.0\.0\.1:\d+\/#\w+$/);
     expect(openedUrl).not.toContain("?key=");
+  });
+
+  it("serves the packaged UI index and nested assets", async () => {
+    const assetsDir = await mkdtemp(join(tmpdir(), "tapioca-ui-assets-"));
+    temporaryDirectories.push(assetsDir);
+    await mkdir(join(assetsDir, "assets"));
+    await writeFile(
+      join(assetsDir, "index.html"),
+      '<!doctype html><script type="module" src="/assets/app.js"></script>',
+      "utf8",
+    );
+    await writeFile(join(assetsDir, "assets", "app.js"), "globalThis.tapioca = true;", "utf8");
+
+    const controller = new AbortController();
+    let indexStatus = 0;
+    let assetStatus = 0;
+    await startUiServer({
+      gateway: new ReadOnlyGateway(),
+      assetsDir,
+      signal: controller.signal,
+      openBrowser: async (url) => {
+        const baseUrl = url.split("#")[0]!;
+        indexStatus = (await fetch(baseUrl)).status;
+        assetStatus = (await fetch(new URL("/assets/app.js", baseUrl))).status;
+        controller.abort();
+      },
+    });
+
+    expect(indexStatus).toBe(200);
+    expect(assetStatus).toBe(200);
   });
 });

@@ -17,13 +17,25 @@ export class TemplateValidationError extends Error {
     | "INVALID_REFERENCE"
     | "DUPLICATE_VARIABLE"
     | "MISSING_VALUE"
-    | "MULTILINE_VALUE";
+    | "MULTILINE_VALUE"
+    | "UNSAFE_VALUE";
 
   constructor(code: TemplateValidationError["code"], message: string) {
     super(message);
     this.name = "TemplateValidationError";
     this.code = code;
   }
+}
+
+const SAFE_UNQUOTED_VALUE = /^[A-Za-z0-9_./:@%+,=-]*$/;
+
+function formatDotenvValue(path: string, value: string): string {
+  if (SAFE_UNQUOTED_VALUE.test(value)) return value;
+  if (!value.includes("'")) return `'${value}'`;
+  throw new TemplateValidationError(
+    "UNSAFE_VALUE",
+    `${path} não pode ser representado de forma portável em dotenv; armazene o valor em base64.`,
+  );
 }
 
 export function parseTemplate(source: string): ParsedTemplate {
@@ -87,7 +99,7 @@ export function renderTemplate(parsed: ParsedTemplate, values: ReadonlyMap<strin
           `${reference.path} contém múltiplas linhas; armazene o conteúdo em base64.`,
         );
       }
-      return `${reference.variable}=${value}`;
+      return `${reference.variable}=${formatDotenvValue(reference.path, value)}`;
     })
     .join("\n");
 }

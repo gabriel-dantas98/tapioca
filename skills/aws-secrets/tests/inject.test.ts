@@ -90,6 +90,24 @@ describe("injectTemplate", () => {
     ).rejects.toThrowError(expect.objectContaining({ code: "OUTPUT_EXISTS" }));
   });
 
+  it("does not overwrite a destination created while secrets are resolving", async () => {
+    const files = await fixture();
+    const racingGateway = gateway({ "payments/prod/api/token": "secret" });
+    const originalGet = racingGateway.getSecret.bind(racingGateway);
+    racingGateway.getSecret = async (path) => {
+      await writeFile(files.output, "OWNER=racer\n", "utf8");
+      return originalGet(path);
+    };
+
+    await expect(
+      injectTemplate(
+        { templatePath: files.template, outputPath: files.output },
+        { gateway: racingGateway, isIgnored: async () => true },
+      ),
+    ).rejects.toThrowError(expect.objectContaining({ code: "OUTPUT_EXISTS" }));
+    expect(await readFile(files.output, "utf8")).toBe("OWNER=racer\n");
+  });
+
   it("refuses a Git-visible output unless explicitly allowed", async () => {
     const files = await fixture();
     await expect(

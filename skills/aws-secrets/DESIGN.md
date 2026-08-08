@@ -28,6 +28,8 @@ tapioca:encoding = base64
 tapioca:content-type = application/json
 ```
 
+O formato é imutável durante `edit`: versões JSON continuam JSON e versões texto continuam texto. Conversões exigem um novo path, evitando deixar `AWSCURRENT` e tags divergentes caso uma segunda chamada AWS falhe.
+
 ## Runtime
 
 O pacote TypeScript contém:
@@ -44,11 +46,13 @@ CLI, servidor e testes dependem da interface `SecretsGateway`, evitando contas A
 
 O layout usa três painéis: domains/environments, lista de products/keys e detalhe protegido. Listagem consulta apenas metadata. Reveal e copy fazem um novo `GetSecretValue`; nenhum valor é armazenado em cache.
 
-O servidor usa porta aleatória e token no fragmento da URL. APIs exigem o header `X-Tapioca-Session`, origem loopback, CSP restritiva e `Cache-Control: no-store`.
+O servidor usa porta aleatória e token no fragmento da URL. APIs exigem o header `X-Tapioca-Session`, `Host` loopback, contexto same-origin e, quando enviado pelo browser, `Origin` loopback. CSP restritiva e `Cache-Control: no-store` completam a defesa local.
 
 ## File safety
 
-O `.env.template` aceita `secret://<path>` como valor completo. A resolução termina antes da escrita. O destino é criado por arquivo temporário no mesmo diretório, modo `0600` e rename atômico. Um erro preserva o arquivo anterior.
+O `.env.template` aceita `secret://<path>` como valor completo. A resolução termina antes da escrita. Valores simples ficam sem aspas; valores sensíveis a comentários, espaços ou expansão são protegidos com aspas simples. Valores sem representação dotenv portátil são rejeitados com orientação para base64.
+
+O destino é criado por arquivo temporário no mesmo diretório e modo `0600`. Sem `--force`, um hard link atômico impede overwrite mesmo se outro processo criar o destino durante o fetch. Com `--force`, rename atômico substitui o arquivo. Um erro preserva o arquivo anterior.
 
 ## Permissions
 
@@ -58,5 +62,6 @@ Recomendar menor privilégio: `ListSecrets`, `DescribeSecret` e `GetSecretValue`
 
 - Vitest para domínio, AWS mockado, CLI e servidor.
 - Playwright para UI e fetch sob demanda.
+- Playwright contra o build `dist/ui` e o servidor Fastify real para list, reveal e copy.
 - Evals token-free para contrato e comportamento.
 - Smoke real nos CLIs Claude e Cursor quando autenticados.

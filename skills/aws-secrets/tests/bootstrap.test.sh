@@ -14,6 +14,9 @@ OUTPUT=$(PATH="$TEST_ROOT/fake-bin:$PATH" TAPIOCA_PREFIX="$TEST_ROOT/prefix" \
 
 test -x "$TEST_ROOT/prefix/bin/tapioca"
 "$TEST_ROOT/prefix/bin/tapioca" --help | grep -q "secrets"
+GLOBAL_ROOT=$(npm root --global --prefix "$TEST_ROOT/prefix")
+test -f "$GLOBAL_ROOT/@tapioca/aws-secrets/dist/ui/index.html"
+find "$GLOBAL_ROOT/@tapioca/aws-secrets/dist/ui/assets" -type f | grep -q .
 grep -q "Tapioca instalado" <<<"$OUTPUT"
 grep -q "$TEST_ROOT/prefix/bin" <<<"$OUTPUT"
 

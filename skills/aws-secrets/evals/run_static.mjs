@@ -48,6 +48,23 @@ await check("read-only loopback server", async () => {
   }
 });
 
+await check("JSON edits do not mutate tags", async () => {
+  const gateway = await readFile(join(root, "src", "aws", "gateway.ts"), "utf8");
+  if (gateway.includes("TagResourceCommand")) {
+    throw new Error("edit ainda pode deixar valor e tags em estado parcial");
+  }
+});
+
+await check("packaged UI has a real-browser integration test", async () => {
+  const test = await readFile(
+    join(root, "tests", "ui", "production-server.spec.ts"),
+    "utf8",
+  );
+  for (const evidence of ["dist/ui", "startUiServer", "Revelar por 30s", "Copiar"]) {
+    if (!test.includes(evidence)) throw new Error(`evidência ausente: ${evidence}`);
+  }
+});
+
 await check("no browser persistence", async () => {
   const app = await readFile(join(root, "ui", "src", "App.tsx"), "utf8");
   const forbidden = ["localStorage", "sessionStorage", "indexedDB", "serviceWorker"];

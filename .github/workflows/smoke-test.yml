@@ -111,6 +111,7 @@ jobs:
           cache-dependency-path: skills/aws-secrets/package-lock.json
       - run: npm ci
       - run: npx playwright install --with-deps chromium
+      - run: npm run build
       - run: npm run test:ui -- --reporter=line
 
   google-sheets-static:
