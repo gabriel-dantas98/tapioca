@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "tapioca",
-  "description": "We bring the base. You pick the filling. Agent skills for Claude Code (humanizer-br, usabilidade-br, multi-gen, google-sheets-apps-script).",
+  "description": "We bring the base. You pick the filling. Agent skills for Claude Code (humanizer-br, usabilidade-br, multi-gen, google-sheets-apps-script, aws-secrets).",
   "owner": {
     "name": "Gabriel Dantas",
     "email": "gabsdevops@gmail.com"
@@ -10,7 +10,7 @@
     {
       "name": "tapioca",
       "source": "./",
-      "description": "Agent skills and companions: humanizer-br, usabilidade-br, multi-gen, google-sheets-apps-script.",
+      "description": "Agent skills and companions: humanizer-br, usabilidade-br, multi-gen, google-sheets-apps-script, aws-secrets.",
       "author": {
         "name": "Gabriel Dantas",
         "url": "https://gdantas.com.br"

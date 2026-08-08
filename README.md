@@ -22,7 +22,7 @@ Distributable plugin for [Claude Code](https://code.claude.com/docs/en/plugins) 
 <details>
 <summary><strong>PT</strong> — A nossa base, o seu recheio.</summary>
 
-Plugin com skills e agents sob o namespace `tapioca`. A marca é a base; cada skill é um recheio. Algumas fillings são de domínio PT-BR (ex.: `humanizer-br`); outras são agnósticas (ex.: `multi-gen`, `google-sheets-apps-script`).
+Plugin com skills e agents sob o namespace `tapioca`. A marca é a base; cada skill é um recheio. Algumas fillings são de domínio PT-BR (ex.: `humanizer-br`); outras são agnósticas (ex.: `multi-gen`, `google-sheets-apps-script`, `aws-secrets`).
 
 </details>
 
@@ -78,6 +78,31 @@ Google Sheets and Google Docs automation via Apps Script (browser mode — no GC
 
 Upstream: [gist v2.6](https://gist.github.com/gabriel-dantas98/6ad86b6bfab840703ec214f228c3004b).
 
+### `/tapioca:aws-secrets`
+
+Uses AWS Secrets Manager with a 1Password-like developer experience. It ships a macOS CLI and a read-only local UI while AWS remains the source of truth.
+
+- Paths are exactly `<domain>/<env>/<product>/<key>`
+- CLI can list, read, create, edit, inject `.env.template`, and open the UI
+- JSON is validated and stored as tagged base64
+- UI fetches values only on reveal or copy and never persists them
+- No `run` command; each client loads its own environment
+- No delete operation; deletion stays in the AWS console
+
+```bash
+aws login --profile production
+bash skills/aws-secrets/scripts/bootstrap.sh
+tapioca secrets doctor --profile production
+tapioca secrets inject .env.template --output .env --profile production
+tapioca secrets ui --profile production
+```
+
+Template values use full references:
+
+```dotenv
+DATABASE_URL=secret://payments/prod/checkout-api/database-url
+```
+
 ## Install
 
 ### Claude Code
@@ -109,6 +134,7 @@ Harness in `.agents/skills/smoke-test-skills/` — same source as CI:
 ```bash
 .agents/skills/smoke-test-skills/run.sh marketplace                 # token-free
 .agents/skills/smoke-test-skills/run.sh oneshot humanizer-br both   # uses tokens
+.agents/skills/smoke-test-skills/run.sh oneshot aws-secrets both    # uses tokens
 .agents/skills/smoke-test-skills/run.sh all humanizer-br both
 ```
 
@@ -149,7 +175,8 @@ tapioca/
 │   ├── humanizer-br/
 │   ├── usabilidade-br/
 │   ├── multi-gen/
-│   └── google-sheets-apps-script/
+│   ├── google-sheets-apps-script/
+│   └── aws-secrets/
 └── agents/
     ├── humanizer-br.md
     └── usabilidade-br.md
@@ -162,6 +189,7 @@ tapioca/
 | **v0.1** | `humanizer-br` (skill + agent), plugin format, AGENTS.md |
 | **v0.2** | `usabilidade-br`, `multi-gen` |
 | **v0.3** | `google-sheets-apps-script`, marketplace manifests |
+| **v0.4** | `aws-secrets` CLI, local UI, dotenv injection |
 | next | More fillings; official marketplace submissions |
 
 No hooks, MCP, or LSP in the short term. Skills and agents until the collection justifies more.

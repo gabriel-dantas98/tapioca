@@ -19,6 +19,7 @@ desenvolvem o plugin.
 ```bash
 .agents/skills/smoke-test-skills/run.sh marketplace          # token-free
 .agents/skills/smoke-test-skills/run.sh oneshot humanizer-br both
+.agents/skills/smoke-test-skills/run.sh oneshot aws-secrets both
 .agents/skills/smoke-test-skills/run.sh all humanizer-br both
 ```
 

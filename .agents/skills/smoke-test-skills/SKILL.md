@@ -22,12 +22,13 @@ Fonte unica: o CI em `.github/workflows/smoke-test.yml` chama o mesmo `run.sh`.
 ```bash
 # sintaxe: run.sh <modo> [skill] [engine]
 #   modo   = marketplace | oneshot | all   (default: all)
-#   skill  = humanizer-br                  (default: humanizer-br)
+#   skill  = humanizer-br | aws-secrets    (default: humanizer-br)
 #   engine = claude | cursor | both        (default: both; so oneshot/all)
 
 .agents/skills/smoke-test-skills/run.sh all humanizer-br both
 .agents/skills/smoke-test-skills/run.sh marketplace
 .agents/skills/smoke-test-skills/run.sh oneshot humanizer-br claude
+.agents/skills/smoke-test-skills/run.sh oneshot aws-secrets both
 ```
 
 Saida em `/tmp/tapioca-smoke/`. Exit: `0` passou, `1` falhou, `2` SKIP (binario ausente ou sem auth).
@@ -45,7 +46,7 @@ Saida em `/tmp/tapioca-smoke/`. Exit: `0` passou, `1` falhou, `2` SKIP (binario 
 
 1. Claude: prompt via **stdin** + `--plugin-dir` (arg posicional + stdin vazio falha no CLI)
 2. Cursor: `cursor-agent -p --trust --sandbox disabled --plugin-dir <root>`
-3. `scripts/check-output.sh` no output (>= 8 padroes, sem emoji decorativo)
+3. Verificador determinístico por skill: `scripts/check-output.sh` ou `scripts/check-aws-secrets-output.sh`
 
 ### `all`
 
@@ -72,4 +73,5 @@ No `run.sh`, registre `(prompt, verificador)` no `case`. Skill so entra com veri
 ## Cobertura atual
 
 - `humanizer-br` — completo (marketplace + oneshot nos dois engines).
+- `aws-secrets` — completo (evals token-free + marketplace + oneshot nos dois engines).
 - `usabilidade-br`, `multi-gen` — smoke estrutural so; verificador oneshot pendente.

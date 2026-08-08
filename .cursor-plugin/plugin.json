@@ -1,7 +1,7 @@
 {
   "name": "tapioca",
-  "description": "We bring the base. You pick the filling. Agent skills and companions for Cursor — fillings include humanizer-br, usabilidade-br, multi-gen, google-sheets-apps-script.",
-  "version": "0.3.0",
+  "description": "We bring the base. You pick the filling. Agent skills and companions for Cursor — fillings include humanizer-br, usabilidade-br, multi-gen, google-sheets-apps-script, aws-secrets.",
+  "version": "0.4.0",
   "author": {
     "name": "Gabriel Dantas",
     "url": "https://gdantas.com.br"
@@ -9,7 +9,7 @@
   "homepage": "https://github.com/gabriel-dantas98/tapioca",
   "repository": "https://github.com/gabriel-dantas98/tapioca",
   "license": "MIT",
-  "keywords": ["agent-skills", "claude-code", "cursor", "humanizer", "writing", "editorial", "usabilidade", "ux", "nielsen", "heuristics", "audit", "image-generation", "svg", "logo", "multi-engine", "codex", "cursor-agent", "google-sheets", "google-docs", "apps-script", "spreadsheet"],
+  "keywords": ["agent-skills", "claude-code", "cursor", "humanizer", "writing", "editorial", "usabilidade", "ux", "nielsen", "heuristics", "audit", "image-generation", "svg", "logo", "multi-engine", "codex", "cursor-agent", "google-sheets", "google-docs", "apps-script", "spreadsheet", "aws", "secrets-manager", "dotenv"],
   "skills": "./skills/",
   "agents": "./agents/"
 }

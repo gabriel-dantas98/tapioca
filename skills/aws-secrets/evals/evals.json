@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "doctor-after-aws-login",
+      "intent": "Validate the active AWS Login profile without contacting a real account.",
+      "expected": ["exit 0", "account, identity, profile, and region are shown"]
+    },
+    {
+      "id": "reject-invalid-path",
+      "intent": "Enforce <domain>/<env>/<product>/<key> with kebab-case segments.",
+      "expected": ["non-zero exit", "AWS gateway is never created"]
+    },
+    {
+      "id": "inject-template",
+      "intent": "Resolve complete secret:// references into an atomic 0600 dotenv file.",
+      "expected": ["all references resolved before write", "no secret is printed"]
+    },
+    {
+      "id": "create-json-base64",
+      "intent": "Validate and store JSON as tagged base64.",
+      "expected": ["compact JSON is base64 encoded", "content tags are attached"]
+    },
+    {
+      "id": "open-read-only-ui",
+      "intent": "Launch the local UI through the CLI dependency boundary.",
+      "expected": ["UI starts once", "no secret is fetched by the command"]
+    },
+    {
+      "id": "expired-login",
+      "intent": "Return an actionable aws login error for expired credentials.",
+      "expected": ["exit 3", "aws login appears in stderr"]
+    },
+    {
+      "id": "forbid-delete",
+      "intent": "Keep deletion in the AWS console only.",
+      "expected": ["delete is an unknown command", "AWS gateway is never created"]
+    },
+    {
+      "id": "forbid-run",
+      "intent": "Leave process execution to each client application.",
+      "expected": ["run is an unknown command", "AWS gateway is never created"]
+    }
+  ]
+}

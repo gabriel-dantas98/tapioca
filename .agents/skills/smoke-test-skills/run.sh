@@ -4,7 +4,7 @@
 #
 # Uso: run.sh <modo> [skill] [engine]
 #   modo   = marketplace | oneshot | all   (default: all)
-#   skill  = humanizer-br                  (default: humanizer-br)
+#   skill  = humanizer-br | aws-secrets    (default: humanizer-br)
 #   engine = claude | cursor | both        (default: both)
 #
 # Exit: 0 passou · 1 falhou · 2 skip (binário ausente ou sem auth)
@@ -37,6 +37,13 @@ prompt_for() {
         printf '%s' "Leia tests/fixtures/ai-flavored.md, leia skills/humanizer-br/SKILL.md, e aplique a skill no texto da fixture. Liste os padrões de IA detectados (mencione cada categoria pelo nome) e em seguida apresente a versão reescrita. Não use emojis no output."
       fi
       ;;
+    aws-secrets)
+      if [ "$engine" = "claude" ]; then
+        printf '%s' "Use a skill /tapioca:aws-secrets para orientar um projeto com DATABASE_URL=secret://payments/prod/checkout-api/database-url no .env.template. Não acesse AWS nem revele valores. Dê os comandos exatos para autenticar, validar, gerar .env e abrir a UI. Explique o path <domain>/<env>/<product>/<key>, JSON em base64 e que delete/run não fazem parte da CLI."
+      else
+        printf '%s' "Leia skills/aws-secrets/SKILL.md e oriente um projeto com DATABASE_URL=secret://payments/prod/checkout-api/database-url no .env.template. Não acesse AWS nem revele valores. Dê os comandos exatos para autenticar, validar, gerar .env e abrir a UI. Explique o path <domain>/<env>/<product>/<key>, JSON em base64 e que delete/run não fazem parte da CLI."
+      fi
+      ;;
     usabilidade-br|multi-gen)
       die "skill '$skill' ainda não tem verificador deterministico (ver .agents/rules/local-testing.md)"
       ;;
@@ -50,6 +57,7 @@ verify_for() {
   local skill="$1" out="$2"
   case "$skill" in
     humanizer-br) bash "$ROOT/scripts/check-output.sh" "$out" ;;
+    aws-secrets) bash "$ROOT/scripts/check-aws-secrets-output.sh" "$out" ;;
     *) die "sem verificador pra '$skill'" ;;
   esac
 }
@@ -148,7 +156,7 @@ case "$MODE" in
     run_oneshot
     ;;
   # atalho legado: run.sh humanizer-br both
-  humanizer-br|usabilidade-br|multi-gen)
+  humanizer-br|aws-secrets|usabilidade-br|multi-gen)
     SKILL="$MODE"
     ENGINE="${2:-both}"
     MODE=oneshot
