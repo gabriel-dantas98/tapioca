@@ -30,6 +30,12 @@ export class TemplateValidationError extends Error {
 const SAFE_UNQUOTED_VALUE = /^[A-Za-z0-9_./:@%+,=-]*$/;
 
 function formatDotenvValue(path: string, value: string): string {
+  if (/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(value)) {
+    throw new TemplateValidationError(
+      "UNSAFE_VALUE",
+      `${path} contém caracteres de controle; armazene o valor em base64.`,
+    );
+  }
   if (SAFE_UNQUOTED_VALUE.test(value)) return value;
   if (!value.includes("'")) return `'${value}'`;
   throw new TemplateValidationError(

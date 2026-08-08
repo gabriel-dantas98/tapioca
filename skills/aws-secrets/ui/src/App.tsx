@@ -16,13 +16,22 @@ function BrandMark(): React.JSX.Element {
 }
 
 function ErrorScreen({ error, retry }: { error: ApiError; retry: () => void }): React.JSX.Element {
+  const authenticationRequired = error.code === "AUTH_REQUIRED";
   return (
     <main className="error-screen">
       <BrandMark />
-      <p className="eyebrow">Sessão indisponível</p>
-      <h1>A AWS precisa reconhecer você novamente.</h1>
+      <p className="eyebrow">
+        {authenticationRequired ? "Sessão indisponível" : "Acesso indisponível"}
+      </p>
+      <h1>
+        {authenticationRequired
+          ? "A AWS precisa reconhecer você novamente."
+          : "Não foi possível acessar este secret."}
+      </h1>
       <p>{error.message}</p>
-      <code>{error.message.match(/aws login[^.]+/)?.[0] ?? "aws login"}</code>
+      {authenticationRequired ? (
+        <code>{error.message.match(/aws login[^.]+/)?.[0] ?? "aws login"}</code>
+      ) : null}
       <button type="button" onClick={retry}>Tentar novamente</button>
     </main>
   );

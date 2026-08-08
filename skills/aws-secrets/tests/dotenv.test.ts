@@ -87,5 +87,8 @@ describe("dotenv templates", () => {
     expect(() =>
       renderTemplate(parsed, new Map([["payments/prod/api/token", "don't # truncate"]])),
     ).toThrowError(expect.objectContaining({ code: "UNSAFE_VALUE" }));
+    expect(() =>
+      renderTemplate(parsed, new Map([["payments/prod/api/token", "before\0after"]])),
+    ).toThrowError(expect.objectContaining({ code: "UNSAFE_VALUE" }));
   });
 });

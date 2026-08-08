@@ -141,3 +141,22 @@ test("shows actionable recovery when the session expires during reveal", async (
     page.locator("code").getByText("aws login --profile production", { exact: true }),
   ).toBeVisible();
 });
+
+test("distinguishes access denial from an expired login", async ({ page }) => {
+  await mockApi(page);
+  await page.unroute("**/api/reveal");
+  await page.route("**/api/reveal", async (route) => {
+    await route.fulfill({
+      status: 403,
+      contentType: "application/json",
+      body: JSON.stringify({
+        error: "Seu profile não tem acesso a este secret.",
+        code: "ACCESS_DENIED",
+      }),
+    });
+  });
+  await page.goto("/#session-token");
+  await page.getByRole("button", { name: "Revelar por 30s" }).click();
+  await expect(page.getByText("Seu profile não tem acesso a este secret.")).toBeVisible();
+  await expect(page.getByText(/aws login/)).toHaveCount(0);
+});

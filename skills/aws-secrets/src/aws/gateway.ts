@@ -26,6 +26,7 @@ import type {
   SecretValue,
   WriteSecretInput,
 } from "../domain/types.js";
+import { parseSecretPath } from "../domain/path.js";
 import type { AwsContext } from "./context.js";
 import { normalizeAwsError, TapiocaSecretsError } from "./errors.js";
 
@@ -50,6 +51,15 @@ function tagsFromAws(
 
 function tagsToAws(tags: SecretTags): Array<{ Key: string; Value: string }> {
   return Object.entries(tags).map(([Key, Value]) => ({ Key, Value }));
+}
+
+function isManagedSecretName(name: string): boolean {
+  try {
+    parseSecretPath(name);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export class AwsSecretsGateway implements SecretsGateway {
@@ -118,6 +128,7 @@ export class AwsSecretsGateway implements SecretsGateway {
       for (const secret of output.SecretList ?? []) {
         if (
           !secret.Name ||
+          !isManagedSecretName(secret.Name) ||
           (prefix && secret.Name !== prefix && !secret.Name.startsWith(`${prefix}/`))
         ) continue;
         const metadata: SecretMetadata = {

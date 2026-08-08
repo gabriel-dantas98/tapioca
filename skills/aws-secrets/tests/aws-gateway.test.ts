@@ -34,6 +34,8 @@ describe("AwsSecretsGateway", () => {
           },
           { Name: "payments/production/api/token", ARN: "arn:wrong-environment" },
           { Name: "payments/prod2/api/token", ARN: "arn:wrong-prefix" },
+          { Name: "payments/prod/api", ARN: "arn:too-short" },
+          { Name: "payments/prod/api/token/extra", ARN: "arn:too-long" },
           { Name: "platform/prod/worker/config", ARN: "arn:config" },
         ],
       },
