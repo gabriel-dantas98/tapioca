@@ -72,4 +72,5 @@ No `run.sh`, registre `(prompt, verificador)` no `case`. Skill so entra com veri
 ## Cobertura atual
 
 - `humanizer-br` — completo (marketplace + oneshot nos dois engines).
-- `usabilidade-br`, `multi-gen` — smoke estrutural so; verificador oneshot pendente.
+- `usabilidade-br` — smoke Python em `skills/usabilidade-br/tests/smoke_test.py` (score de duas camadas, dedup, contrato das leis). Oneshot de CLI pendente.
+- `multi-gen` — smoke Python; verificador oneshot pendente.

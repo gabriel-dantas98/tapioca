@@ -1,10 +1,10 @@
 # DESIGN — usabilidade-br
 
-> Skill de auditoria de usabilidade para apps web com as **10 heurísticas de Nielsen**, gera report HTML local e um **prompt de fix copiável por violação** (file:line apontado, pronto pra colar em outro Claude Code).
+> Skill de auditoria de usabilidade para apps web. Passe 1: **10 heurísticas de Nielsen**. Passe 2: leis de UX com número de aceite (toque >= 44 px, resposta <= 400 ms, mais de 5 ações iguais no mesmo patamar viram "Mais"). Report HTML local e um **prompt de fix copiável por violação** (lei, heurística de origem, critério numérico, file:line quando houver código).
 
 ## Goal
 
-Fechar o loop "audita → vê o que tá ruim → arruma" num passo só. O agent captura evidência visual, aponta heurística violada, e devolve um prompt cirúrgico que outro agente consegue executar sem precisar reanalisar o app.
+Fechar o loop "audita → vê o que tá ruim → arruma" num passo só. O agent captura evidência, aponta a heurística de origem e a lei que fecha o número, e devolve um prompt cirúrgico que outro agente executa sem reanalisar o app.
 
 Targets primários:
 - Apps web em desenvolvimento (localhost ou preview URL)
@@ -13,7 +13,7 @@ Targets primários:
 
 ## Non-goals
 
-- **Não classifica** se a UI é "boa" ou "ruim" subjetivamente — só checa as 10 heurísticas com critério claro.
+- **Não classifica** se a UI é "boa" ou "ruim" subjetivamente — checa as 10 heurísticas e as leis do catálogo, com número quando a lei tem número.
 - **Não testa acessibilidade automatizada** (axe-core, WCAG completo) — isso é trabalho de outra skill futura. Aqui cobrimos só o que Nielsen toca em UX (ex.: heurística 1 "visibilidade de status" sobrepõe um pouco com a11y, mas o foco é heurística clássica).
 - **Não roda em mobile/desktop nativo** na v0.1 — Chrome MCP é o único capturador. Mobile fica pra v0.2.
 - **Não corrige nada sozinha** — só gera o prompt de fix. Quem executa é o usuário ou outro agente.
@@ -47,20 +47,21 @@ Arquivo único auto-contido: `usabilidade-report-YYYY-MM-DD-HHmm.html`, servido 
 Estrutura:
 
 ```
-┌─ Header: URL auditada, data, score geral (0–100), severidade média
+┌─ Header: URL, data, geral (camada Nielsen, 0–100), camada leis (0–100), achados únicos
 ├─ Sumário executivo (3–5 bullets, PT-BR humanizado)
-├─ Score por heurística (radar chart inline, SVG, sem deps externas)
+├─ Placar da camada leis (nome, score, heurística de origem) — sem repetir a ficha
 ├─ Para cada uma das 10 heurísticas:
 │   ├─ Nome + descrição curta
-│   ├─ Status (✓ pass / ⚠ warn / ✗ fail) + score 0–10
-│   ├─ Lista de violações (se houver):
+│   ├─ Status (pass / warn / fail) + score 0–10
+│   ├─ Achados daquela origem (cada um uma vez):
+│   │   ├─ Lei, ou "nenhuma"
 │   │   ├─ Severidade (0–4 Nielsen)
+│   │   ├─ Critério numérico de aceite
 │   │   ├─ Evidência: screenshot recortado + selector DOM
 │   │   ├─ Snippet de código (se --code informado) com file:line
-│   │   ├─ Bloco "Fix prompt" — copia-cola pronto
-│   │   └─ Bloco "Como testar manualmente" — passos curtos
+│   │   └─ Fix prompt — cabeçalho do score.py + miolo
 │   └─ ...
-└─ Rodapé: limitações, escopo, link pro Nielsen Norman Group
+└─ Rodapé: NN/g, Laws of UX, Leandro Rezende (Bold School)
 ```
 
 Sem dependências externas no HTML — tudo inline (CSS, SVG, screenshots em base64). Roda offline depois de gerado.
@@ -70,8 +71,11 @@ Sem dependências externas no HTML — tudo inline (CSS, SVG, screenshots em bas
 Cada violação tem um `<details>` com `<pre>` contendo prompt no formato:
 
 ```text
-Heurística violada: <#N — Nome da heurística>
+Lei: <nome — critério numérico, ou "nenhuma">
+Heurística de origem: <#N — Nome>
+Família: <token fechado>
 Severidade: <0–4 Nielsen>
+Critério de aceitação numérico: <o número da lei ou da família>
 
 Contexto: <1 frase do que tá rolando na tela>
 
@@ -123,13 +127,13 @@ Tom: **revisor sênior fazendo code review de UX**. Direto, evidência-primeiro,
    - get_page_text + screenshot full-page + screenshots de viewport
    - Lê console errors via read_console_messages
 
-3. Análise (multi-pass por heurística)
-   Para cada uma das 10 heurísticas:
-   - Subagent dedicado (ver companion) recebe:
-     - evidência visual
-     - HTML/texto da página
-     - código fonte relevante (se houver)
-   - Retorna: status, score, violações (cada uma com evidência + sugestão)
+3. Análise
+   Passe 1, em paralelo: uma heurística por subagent (ver companion).
+   Passe 2, um dispatch: o catálogo de leis.md sobre a mesma evidência
+   e sobre as fichas cruas do passe 1.
+   score.py funde. Achado repetido (mesma rota, selector e família)
+   vira uma ficha. O geral é a camada Nielsen; a camada leis não soma
+   outra multa.
 
 4. Correlação código ↔ evidência (se --code)
    - Pra cada violação, busca o componente responsável
@@ -149,8 +153,10 @@ Tom: **revisor sênior fazendo code review de UX**. Direto, evidência-primeiro,
 
 ## Padrão arquitetural
 
-- **Skill** (`skills/usabilidade-br/SKILL.md`) = entry point, catálogo das 10 heurísticas com critérios PT-BR, template HTML, instruções de captura
-- **Agent companion** (`agents/usabilidade-br.md`) = multi-pass: roda 1 pass por heurística em paralelo, agrega, monta o report
+- **Skill** (`skills/usabilidade-br/SKILL.md`) = entry point, catálogo das 10 heurísticas, template HTML, instruções de captura
+- **Leis** (`skills/usabilidade-br/leis.md`) = passe 2, texto próprio. Crédito a Leandro Rezende (Bold School) e a Laws of UX; não é cópia do arquivo dele
+- **Score** (`skills/usabilidade-br/score.py`) = fusão, duas camadas, cabeçalho do fix prompt
+- **Agent companion** (`agents/usabilidade-br.md`) = 10 passes de heurística em paralelo, depois um passe de leis, depois o score
 
 Mesma régua do `humanizer-br`: skill faz a passada simples, agent orquestra a versão "séria".
 
@@ -188,4 +194,4 @@ Cada uma vai ganhar no SKILL.md:
 
 ---
 
-**Não-implementado nesta DESIGN:** plugin.json updates, SKILL.md (catálogo completo), companion agent prompt, template HTML, smoke test. Esse arquivo é o contrato — implementação vem depois da aprovação do Gabriel.
+O catálogo de heurísticas está em `SKILL.md`. O catálogo de leis está em `leis.md`. O score sai de `score.py`. Smoke token-free: `python3 skills/usabilidade-br/tests/smoke_test.py`.

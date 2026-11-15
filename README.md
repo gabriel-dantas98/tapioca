@@ -45,14 +45,14 @@ Pairs with a `preview-server` skill (control-plane) to serve `index.html`.
 
 ### `/tapioca:usabilidade-br`
 
-Audits web app usability against Jakob Nielsen's 10 heuristics. Captures evidence via Chrome MCP, optionally correlates with source (`--code <path>`), and writes a local self-contained HTML report with:
+Audits web app usability in two passes: Jakob Nielsen's 10 heuristics, then UX laws (Hick, Fitts, Jakob, Doherty, Miller, and the rest of the catalog). Captures evidence via Chrome MCP, optionally correlates with source (`--code <path>`), and writes a local self-contained HTML report with:
 
-- Overall score (0–100) and per-heuristic scores
+- Two score layers over one finding list. The headline is the Nielsen layer; the laws layer rereads findings that cite a law and does not add the penalty again
 - Visual evidence (embedded screenshots)
 - Code snippets with `file:line` when the component is found
-- **Copyable fix prompt** per violation — paste into another Claude Code session
+- **Copyable fix prompt** per violation — names the law, the source heuristic, and a numeric acceptance criterion (touch target >= 44 px, visible response <= 400 ms, more than 5 same-level actions collapse into "Mais")
 
-Companion agent parallelizes 10 passes (one per heuristic) and builds the report.
+The law text is written for this skill. Selection credits Leandro Rezende (Bold School) and [Laws of UX](https://lawsofux.com/). Companion agent parallelizes the 10 heuristic passes, then runs the law pass and scores with `skills/usabilidade-br/score.py`.
 
 ```text
 /tapioca:usabilidade-br http://localhost:3000 --code ./src

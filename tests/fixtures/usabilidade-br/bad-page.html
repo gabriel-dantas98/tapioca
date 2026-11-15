@@ -5,10 +5,10 @@
 <title>Bad UX — fixture pra usabilidade-br</title>
 <style>
   body { font-family: Arial; margin: 20px; }
-  .btn { padding: 8px 16px; cursor: pointer; }
+  .btn { box-sizing: border-box; height: 32px; min-width: 32px; padding: 4px 8px; cursor: pointer; }
   .btn-primary { background: #3366ff; color: white; border: none; }
   .btn-danger { background: #3366ff; color: white; border: none; }
-  .icon-only { background: none; border: none; cursor: pointer; font-size: 20px; }
+  .icon-only { box-sizing: border-box; width: 20px; height: 20px; padding: 0; background: none; border: none; cursor: pointer; font-size: 20px; }
   input { padding: 6px; border: 1px solid #ccc; }
   .modal { position: fixed; top: 50%; left: 50%;
            transform: translate(-50%, -50%); background: white;
@@ -38,6 +38,16 @@
   </form>
 </section>
 
+<section id="acoes-iguais" data-patamar="igual">
+  <h2>Ações da linha</h2>
+  <button class="btn" type="button">Exportar</button>
+  <button class="btn" type="button">Duplicar</button>
+  <button class="btn" type="button">Arquivar</button>
+  <button class="btn" type="button">Mover</button>
+  <button class="btn" type="button">Etiquetar</button>
+  <button class="btn" type="button">Compartilhar</button>
+</section>
+
 <section>
   <h2>Suas Ações</h2>
   <button class="icon-only">🗑</button>
@@ -60,9 +70,12 @@
 </footer>
 
 <script>
-  // Sem feedback de loading, sem validação client-side, sem ESC handler,
+  // Sem feedback de loading (Doherty: o handler não muda o estado),
+  // sem validação client-side, sem ESC handler,
   // sem tooltip nos ícones, sem confirmação dupla, sem aria-labels,
   // sem empty state com CTA, sem hierarquia de CTAs.
+  // .btn fica em 32px e .icon-only em 20px (abaixo de 44).
+  // #acoes-iguais tem 6 ações no mesmo patamar e nenhum controle Mais.
 </script>
 </body>
 </html>

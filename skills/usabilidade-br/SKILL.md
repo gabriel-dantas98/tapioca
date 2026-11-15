@@ -1,8 +1,8 @@
 ---
 name: usabilidade-br
 description: |
-  Audita usabilidade de apps web contra as 10 heurísticas de Jakob Nielsen e gera um report HTML local com evidência visual (screenshots), pontuação por heurística e um "prompt de fix" copiável por violação — pronto pra colar em outro Claude Code apontando file:line. Fecha o loop "audita → vê o problema → arruma".
-  Gatilhos: auditar usabilidade, rodar Nielsen, heurísticas de usabilidade, revisar UX, audit de UI, checar usabilidade, /tapioca:usabilidade-br.
+  Audita usabilidade de apps web em dois passes: as 10 heurísticas de Jakob Nielsen e um segundo passe com leis de UX (Hick, Fitts, Jakob, Doherty, Miller). O report HTML traz evidência, score em duas camadas sem achado repetido, e um fix prompt por violação com a lei, a heurística de origem e o critério numérico (toque >= 44 px, resposta <= 400 ms, mais de 5 ações iguais viram Mais).
+  Gatilhos: auditar usabilidade, rodar Nielsen, leis de UX, Hick, Fitts, Doherty, Miller, Jakob, revisar UX, audit de UI, checar usabilidade, /tapioca:usabilidade-br.
 allowed-tools:
   - Read
   - Write
@@ -23,14 +23,16 @@ allowed-tools:
 
 # usabilidade-br
 
-Auditor de usabilidade PT-BR baseado nas 10 heurísticas de Jakob Nielsen (1994, revisadas 2024 pela NN/g). Captura evidência via Chrome MCP, opcionalmente correlaciona com código fonte, e entrega um HTML report self-contained com fix prompts copiáveis.
+Auditor de usabilidade PT-BR. O passe 1 usa as 10 heurísticas de Jakob Nielsen (1994, revisadas 2024 pela NN/g). O passe 2 aplica as leis de `leis.md`, com número de aceite. Os dois passes viram uma lista só. O score tem duas camadas; o geral é a camada Nielsen e não soma a multa de novo na camada leis.
 
-Esta skill **não corrige nada sozinha** — gera o prompt cirúrgico que outro agente (ou o próprio Gabriel) executa.
+O número sai de `python3 skills/usabilidade-br/score.py --findings <json>`. Não recalcule no olho.
+
+Esta skill **não corrige nada sozinha** — gera o prompt cirúrgico que outro agente (ou o próprio Gabriel) executa. As regras das leis foram escritas aqui, com crédito a Leandro Rezende (Bold School) e a Laws of UX. Não copie o arquivo dele para o report.
 
 ## Decisão de modo
 
-1. **Single page, sem código** (`--code` ausente) → roda direto na própria sessão. Pass único por heurística.
-2. **Múltiplas rotas OU `--code` informado OU usuário pediu "audit sério"** → invoca o agent companion `usabilidade-br` (em `agents/`), que paraleliza 10 passes (um por heurística) e correlaciona código ↔ evidência.
+1. **Single page, sem código** (`--code` ausente) → os dois passes nesta sessão, nesta ordem: heurísticas, leis, `score.py`.
+2. **Múltiplas rotas OU `--code` informado OU usuário pediu "audit sério"** → agent companion `usabilidade-br` (em `agents/`). Ele paraleliza as 10 heurísticas, roda o passe de leis num dispatch só (o catálogo inteiro, para não abrir a mesma ficha em duas leis) e funde com `score.py`.
 3. Se ambíguo, pergunta com `AskUserQuestion`. Default: agent companion (qualidade > velocidade).
 
 ## Inputs aceitos
@@ -70,8 +72,12 @@ Pra cada rota:
 2. navigate({ url: <rota> })
 3. Aguarda 1500ms (DOMContentLoaded + JS idle aproximado)
 4. get_page_text — captura texto da viewport
-5. javascript_tool — script que retorna outerHTML truncado (~50KB) +
-   lista de selectors clicáveis (botões, links, inputs, [role])
+5. javascript_tool — outerHTML truncado (~50KB) e, para cada
+   `a, button, input, select, textarea, [role=button]`:
+   `{selector, grupo (pai imediato), width, height, texto}`.
+   O retângulo é o de borda (`getBoundingClientRect`), não o font-size.
+   No mesmo script, conte ações de comando por pai: quantos botões no
+   mesmo patamar, e se já existe um controle "Mais" / "More".
 6. read_console_messages — captura erros/warns
 7. Screenshot full page via javascript_tool + html2canvas inline
    (alternativa: instrução pro usuário tirar screenshot manual e colar
@@ -80,29 +86,118 @@ Pra cada rota:
 
 **Importante:** Chrome MCP não expõe screenshot nativo no toolkit base — usar `javascript_tool` pra invocar `html2canvas` injetado, ou aceitar trabalho sem screenshot (degrada UX do report mas não bloqueia).
 
-### 3. Análise (10 heurísticas)
+### 3. Análise em dois passes
 
-Para cada uma das 10, aplique os critérios do catálogo abaixo na evidência coletada. Pra cada violação encontrada:
+Os passes não são duas auditorias. Eles emitem fichas cruas; `score.py` funde e devolve a lista que entra no HTML.
+
+#### Passe 1 — heurísticas
+
+Para cada uma das 10, aplique o catálogo abaixo. Cada ficha crua traz `familia` da tabela fechada. Tela que passa não gera ficha.
+
+#### Passe 2 — leis
+
+Leia `leis.md` inteiro antes de emitir ficha deste passe. Lei `condicional` sem gatilho fica fora de `leis_aplicaveis`. Não reabra H5 nem H9 como lei.
+
+Medição, não chute:
+
+- Toque: falha de Fitts se `width < 44` ou `height < 44` no retângulo de borda. Vão entre adjacentes `< 8` px entra na mesma ficha.
+- Resposta: sem cronômetro, `feedback-lento` só sai se o handler não muda o estado do controle. O aceite continua `<= 400 ms`. Não escreva um tempo que você não mediu.
+- Ações iguais: botões de comando com o mesmo pai e o mesmo patamar. "Mais" / "More" não entra na conta. Mais de 5 vira `excesso-acoes`.
+
+#### Fusão
+
+```bash
+python3 skills/usabilidade-br/score.py --findings /tmp/usabilidade-achados.json
+```
+
+Renderize o `achados` da saída, não a lista crua. Heurística, lei, critério e `fix_cabecalho` vêm do script.
+
+`leis_aplicaveis` = leis `sempre` (a tela tem controle) + condicionais com gatilho + qualquer lei de uma ficha emitida. Lei com ficha e fora da lista faz o script sair com erro — inclua a lei, não apague a ficha.
 
 ```json
 {
-  "heuristica": 1,
-  "severidade": 0,
-  "titulo": "string curta",
-  "descricao": "1-2 frases descrevendo o problema",
-  "evidencia": {
-    "selector": "css selector",
-    "snippet_html": "trecho HTML relevante",
-    "screenshot_crop": "base64 ou null"
-  },
-  "codigo": {
-    "file": "src/components/Header.tsx",
-    "line": 42,
-    "snippet": "trecho do código"
-  },
-  "fix_prompt": "texto completo do prompt copiável"
+  "leis_aplicaveis": ["hick", "fitts", "doherty"],
+  "achados": [
+    {
+      "rota": "/",
+      "selector": "#payment-form button[type=submit]",
+      "grupo": "#payment-form",
+      "familia": "feedback-lento",
+      "severidade": 3,
+      "titulo": "enviar não muda de estado",
+      "descricao": "o handler só dispara alert",
+      "evidencia": {
+        "selector": "css selector",
+        "snippet_html": "trecho HTML relevante",
+        "screenshot_crop": null
+      },
+      "codigo": {
+        "file": "src/components/Header.tsx",
+        "line": 42,
+        "snippet": "trecho do código"
+      }
+    }
+  ]
 }
 ```
+
+`grupo` é o pai imediato. Não use `body`.
+
+O miolo do fix prompt cola depois do `fix_cabecalho`. Não troque o número que o cabeçalho já fixou (44, 400, 5, ou o da família Nielsen).
+
+```text
+Contexto: <o que a pessoa está tentando fazer>
+
+Arquivo: <path:line ou "componente não localizado, ajustar manualmente">
+Trecho atual:
+<código>
+
+Ação sugerida: <mudança cirúrgica>
+
+Critério de aceitação:
+- <o mesmo número do fix_cabecalho>
+- <outro bullet observável>
+
+Re-auditar com: /tapioca:usabilidade-br <url>
+```
+
+Famílias fechadas (o script recusa o resto):
+
+| familia | H | lei |
+|---|---|---|
+| feedback-lento | 1 | doherty |
+| status-invisivel | 1 | nenhuma |
+| progresso-fluxo | 1 | gradiente |
+| fim-sem-status | 1 | pico-final |
+| tarefa-aberta-invisivel | 1 | zeigarnik |
+| linguagem-sistema | 2 | nenhuma |
+| sem-saida | 3 | nenhuma |
+| convencao-quebrada | 4 | jakob |
+| visual-mesma-funcao | 4 | similaridade |
+| grupo-sem-regiao | 4 | regiao-comum |
+| termo-instavel | 4 | nenhuma |
+| erro-evitavel | 5 | nenhuma |
+| opcao-sem-default | 5 | efeito-default |
+| sem-rotulo | 6 | nenhuma |
+| sem-bloco | 6 | miller |
+| itens-afastados | 6 | proximidade |
+| posicao-serial | 6 | posicao-serial |
+| alvo-motor | 7 | fitts |
+| complexidade-no-usuario | 7 | tesler |
+| caminho-longo | 7 | parkinson |
+| sem-atalho | 7 | nenhuma |
+| excesso-acoes | 8 | hick |
+| sem-destaque | 8 | von-restorff |
+| ruido-visual | 8 | nenhuma |
+| erro-opaco | 9 | nenhuma |
+| sem-ajuda | 10 | nenhuma |
+
+Supressão no mesmo `grupo` (o script aplica; não renderize as duas):
+
+- `excesso-acoes` absorve `sem-destaque`
+- `feedback-lento` absorve `status-invisivel`
+- `erro-opaco` absorve `fim-sem-status`
+- `visual-mesma-funcao` absorve `sem-destaque`
 
 ### 4. Correlação código ↔ evidência (se `--code`)
 
@@ -119,7 +214,7 @@ Heurística de match: primeiro hit em componente que renderiza o texto. Sem matc
 
 ### 5. Render do HTML
 
-Use o template em `templates/report.html` (inline neste arquivo na seção "Template HTML"). Substitui placeholders, embute screenshots base64, gera arquivo `usabilidade-report-YYYY-MM-DD-HHmm.html` em `/tmp/` ou pasta atual.
+Use o template inline na seção "Template HTML". Os números do header saem do JSON do `score.py` (`geral`, `camada_leis`, `achados_unicos`, `por_heuristica`, `por_lei`). A lista de fichas é `achados`, já fundida — uma vez por achado, agrupada pela heurística de origem, com a lei no título. Não desenhe a mesma ficha de novo na seção de leis; lá entra só o placar. Embute screenshots em base64 e grave `usabilidade-report-YYYY-MM-DD-HHmm.html` em `/tmp/` ou na pasta atual.
 
 ### 6. Entrega
 
@@ -131,10 +226,11 @@ open http://localhost:8765/<arquivo>.html
 
 Imprime no CLI:
 ```
-✓ Audit concluído
+Audit concluído
   URL: <url>
-  Score geral: 73/100
-  Violações: 12 (3 graves, 5 moderadas, 4 cosméticas)
+  Geral: 73/100 (camada Nielsen)
+  Leis: 81/100
+  Achados únicos: 12 (3 graves, 5 moderadas, 4 cosméticas)
   Report: /tmp/usabilidade-report-2026-05-18-1432.html
   Servindo em: http://localhost:8765/
 ```
@@ -144,16 +240,17 @@ Imprime no CLI:
 ## Catálogo — 10 heurísticas de Nielsen (PT-BR)
 
 > Cada heurística tem: **descrição curta** · **critérios objetivos** (o que checar) · **sinais de violação** (smells) · **template de fix prompt**.
+>
+> O template é o miolo. O `fix_cabecalho` que o `score.py` devolve vem antes, e o número de aceite dele ganha de qualquer número antigo do template.
 
 ### H1 — Visibilidade do status do sistema
 
 O sistema sempre mantém o usuário informado sobre o que está acontecendo, com feedback apropriado em tempo razoável.
 
 **Critérios objetivos:**
-- Toda ação do usuário (click, submit, navegação) tem feedback visual em < 1s
-- Operações > 1s mostram loading/spinner/skeleton
-- Operações > 10s mostram progresso (% ou step indicator)
-- Estado atual (página, modo, seleção) está visível sem precisar adivinhar
+- Toda ação do usuário tem mudança visível em <= 400 ms (Doherty; família `feedback-lento`)
+- Se a operação passa de 400 ms, o controle já mostra disabled, skeleton ou progresso nesse prazo
+- Estado atual (página, modo, seleção) está visível sem adivinhar — família `status-invisivel`, outro grupo, não uma segunda ficha do mesmo botão
 
 **Sinais de violação:**
 - Botão clicado sem mudança de estado (sem disabled, sem spinner)
@@ -177,8 +274,8 @@ Ação sugerida: adicionar <loading state | feedback visual | progress indicator
 ao componente para que o usuário saiba que <ação X> está em andamento.
 
 Critério de aceitação:
+- Resposta visível em <= 400 ms (o número do fix_cabecalho; não abrir segunda ficha)
 - Botão fica disabled durante a operação
-- Spinner/skeleton visível em < 200ms
 - Erro ou sucesso comunicado ao final
 ```
 
@@ -312,6 +409,8 @@ Melhor que boas mensagens de erro é um design cuidadoso que previne o erro acon
 - Constraints comunicados antes do erro (ex.: "mínimo 8 caracteres" antes de digitar)
 - Ações irreversíveis precisam de "double opt-in" (digite "DELETAR" pra confirmar)
 - Auto-complete e suggestions reduzem typing
+
+`<= 200 ms` aqui é validação de campo (família `erro-evitavel`). Resposta a um clique é `feedback-lento` / Doherty, `<= 400 ms`. Não junte as duas fichas.
 
 **Sinais de violação:**
 - Form valida só no submit, perdendo contexto
@@ -604,29 +703,38 @@ Self-contained, sem CDN. Estrutura mínima:
 </head>
 <body>
 <header>
-  <h1>Auditoria de usabilidade — Nielsen 10</h1>
-  <div class="meta">{{url}} · {{data}} · {{rotas_count}} rota(s)</div>
+  <h1>Auditoria de usabilidade — Nielsen e leis</h1>
+  <div class="meta">{{url}} · {{data}} · {{rotas_count}} rota(s) · severidade média {{severidade_media}} · {{duplicatas_removidas}} duplicata(s) fundida(s)</div>
   <div class="score-hero">
-    <div><div class="n">{{score_geral}}</div><div class="meta">score geral / 100</div></div>
-    <div><div class="n">{{violacoes_total}}</div><div class="meta">violações</div></div>
-    <div><div class="n">{{severidade_media}}</div><div class="meta">severidade média</div></div>
+    <div><div class="n">{{geral}}</div><div class="meta">geral / 100 · camada Nielsen</div></div>
+    <div><div class="n">{{camada_leis}}</div><div class="meta">camada leis / 100</div></div>
+    <div><div class="n">{{achados_unicos}}</div><div class="meta">achados únicos</div></div>
   </div>
 </header>
 <main>
   <section id="sumario">{{sumario_executivo_html}}</section>
+  <section id="leis">
+    <h2>Camada leis</h2>
+    <p class="meta">Mesmos achados, lidos pela lei. O geral não soma esta camada de novo.</p>
+    {{#each por_lei}}
+    <p>{{nome}} · {{score}}/10 · origem H{{heuristica}}</p>
+    {{/each}}
+  </section>
   {{#each heuristicas}}
   <article class="heuristic">
     <h2>H{{n}} — {{nome}} <span class="status {{status_class}}">{{status_text}}</span></h2>
     <div class="meta">{{descricao_curta}} · score {{score}}/10</div>
     {{#each violacoes}}
     <details>
-      <summary>{{titulo}} <span class="meta">· sev {{severidade}}</span></summary>
+      <summary>{{titulo}} <span class="meta">· {{lei_ou_nenhuma}} · sev {{severidade}}</span></summary>
       <p>{{descricao}}</p>
+      <p class="meta">Aceite: {{criterio_numerico}}</p>
       {{#if screenshot}}<img class="evidence" src="data:image/png;base64,{{screenshot}}">{{/if}}
       {{#if codigo.file}}<div class="meta">{{codigo.file}}:{{codigo.line}}</div>
       <pre>{{codigo.snippet}}</pre>{{/if}}
       <button class="copy-btn" data-target="fix-{{id}}">copiar fix prompt</button>
-      <pre id="fix-{{id}}">{{fix_prompt}}</pre>
+      <pre id="fix-{{id}}">{{fix_cabecalho}}
+{{fix_prompt}}</pre>
     </details>
     {{/each}}
   </article>
@@ -634,7 +742,9 @@ Self-contained, sem CDN. Estrutura mínima:
 </main>
 <footer>
   Gerado por <code>/tapioca:usabilidade-br</code> ·
-  Catálogo: <a href="https://www.nngroup.com/articles/ten-usability-heuristics/">NN/g — 10 Usability Heuristics</a>
+  Heurísticas: <a href="https://www.nngroup.com/articles/ten-usability-heuristics/">NN/g</a>
+  · Leis: <a href="https://lawsofux.com/">Laws of UX</a>
+  · Critérios numéricos escritos para esta skill, a partir de Leandro Rezende (Bold School) e do catálogo Laws of UX.
 </footer>
 <script>
 document.querySelectorAll('.copy-btn').forEach(b => b.addEventListener('click', () => {
@@ -652,26 +762,30 @@ Substitui `{{...}}` por valores reais; o `{{#each}}` é pseudocódigo — você 
 
 ---
 
-## Cálculo do score geral
+## Cálculo do score
 
-```
-score_heuristica = max(0, 10 - sum(severidade_violacao * peso))
-peso por severidade: {0:0.5, 1:1, 2:2, 3:3, 4:5}
+Rode `score.py`. Não refaça a conta na mão. A fórmula, para ler o report:
 
-score_geral = (sum(score_heuristica) / 100) * 100  // já em 0-100
-```
+- Peso por severidade: `{0: 0.5, 1: 1, 2: 2, 3: 3, 4: 5}`.
+- Cada achado único desconta o peso uma vez, no bucket da heurística de origem.
+- `score_heuristica = max(0, 10 - soma dos pesos)`. `camada_nielsen = soma das 10` (0–100).
+- `camada_leis`: o mesmo peso, no bucket da lei, só para `leis_aplicaveis`. Lei sem ficha vale 10. A camada é a média desses buckets vezes 10. Lei fora da lista não entra no denominador.
+- `geral = camada_nielsen`. A camada leis relê os achados que têm lei. Não some as duas, não faça a média das duas: a multa já foi aplicada na heurística de origem.
 
-Pisos:
+Pisos do geral (camada Nielsen):
 - 90+ → excelente
 - 75–89 → bom
 - 60–74 → atenção
-- < 60 → ação imediata
+- abaixo de 60 → ação imediata
 
 ---
 
 ## Restrições
 
 - **Não invente violações** pra "encontrar problema". Se a tela tá ok numa heurística, marca pass e segue. Falso positivo destrói credibilidade do report.
+- **Não duplique achado.** Quem entra no HTML é a lista do `score.py`. Mesma rota, mesmo selector, mesma família é uma ficha. Hick absorve destaque no mesmo grupo, Doherty absorve status no mesmo controle, erro opaco absorve pico-final, similaridade absorve destaque no mesmo par.
+- **Não invente milissegundo.** Sem medição, a ficha de Doherty descreve a ausência de mudança de estado. O aceite permanece <= 400 ms.
+- **Não copie** o material de Leandro Rezende para o report. O crédito fica no rodapé; a regra aplicada é a de `leis.md`.
 - **Não cite código que não viu.** Sem `--code`, o fix prompt sai com `file: null` e diz "componente não localizado automaticamente".
 - **Não use emojis decorativos** no report. Ícones de status (✓⚠✗) são semânticos, OK.
 - **Não acesse URLs externas** sem permissão (no fetch de docs, no telemetria). Tudo local.
@@ -686,12 +800,12 @@ Curta, apontando pro report:
 ```
 Audit concluído pra http://localhost:3000
 
-Score: 73/100  ·  12 violações  ·  severidade média 2.1
+Geral: 73/100 (camada Nielsen)  ·  Leis: 81/100  ·  12 achados únicos  ·  severidade média 2.1
 
-Top 3 críticas:
-- H3 (sev 3): modal de delete sem confirmação em DeleteModal.tsx:42
-- H5 (sev 3): form de pagamento valida só no submit em CheckoutForm.tsx:88
-- H1 (sev 2): botão "Enviar" sem loading state em ContactForm.tsx:24
+Top 3:
+- H1 · Doherty (sev 3): enviar sem resposta em <= 400 ms — ContactForm.tsx:24
+- H7 · Fitts (sev 3): alvo de 32 px, piso 44 px — CheckoutForm.tsx:88
+- H8 · Hick (sev 2): 6 ações no mesmo patamar, sem Mais — Toolbar.tsx:12
 
 Report: file:///tmp/usabilidade-report-2026-05-18-1432.html
 Servindo em: http://localhost:8765/
@@ -704,3 +818,5 @@ Servindo em: http://localhost:8765/
 - [NN/g — 10 Usability Heuristics for User Interface Design](https://www.nngroup.com/articles/ten-usability-heuristics/) — fonte canônica
 - Nielsen, Jakob (1994). *Usability Engineering*. Morgan Kaufmann.
 - [NN/g — Severity Ratings for Usability Problems](https://www.nngroup.com/articles/how-to-rate-the-severity-of-usability-problems/) — escala 0–4
+- [Laws of UX](https://lawsofux.com/) (Jon Yablonski) — catálogo público das leis
+- Leandro Rezende (Bold School). A ideia de auditar com lei numérica amarrada à heurística de origem vem do material dele. As regras em `leis.md` foram escritas para esta skill; não copie o arquivo dele.

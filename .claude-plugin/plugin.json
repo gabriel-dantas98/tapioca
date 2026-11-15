@@ -9,5 +9,5 @@
   "homepage": "https://github.com/gabriel-dantas98/tapioca",
   "repository": "https://github.com/gabriel-dantas98/tapioca",
   "license": "MIT",
-  "keywords": ["agent-skills", "claude-code", "cursor", "humanizer", "writing", "editorial", "usabilidade", "ux", "nielsen", "heuristics", "audit", "image-generation", "svg", "logo", "multi-engine", "codex", "cursor-agent", "google-sheets", "google-docs", "apps-script", "spreadsheet", "web-vitals", "lighthouse", "ci", "performance"]
+  "keywords": ["agent-skills", "claude-code", "cursor", "humanizer", "writing", "editorial", "usabilidade", "ux", "nielsen", "heuristics", "laws-of-ux", "audit", "image-generation", "svg", "logo", "multi-engine", "codex", "cursor-agent", "google-sheets", "google-docs", "apps-script", "spreadsheet", "web-vitals", "lighthouse", "ci", "performance"]
 }
