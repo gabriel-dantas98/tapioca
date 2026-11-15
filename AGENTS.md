@@ -40,7 +40,10 @@ tapioca/
 │   │   └── SKILL.md          # Skill prompt-only
 │   ├── usabilidade-br/
 │   │   ├── SKILL.md
-│   │   └── DESIGN.md
+│   │   ├── DESIGN.md
+│   │   ├── leis.md             # Passe 2 — leis com número de aceite
+│   │   ├── score.py            # Duas camadas, dedup, cabeçalho do fix
+│   │   └── tests/smoke_test.py
 │   ├── multi-gen/
 │   │   ├── SKILL.md
 │   │   ├── DESIGN.md
@@ -83,11 +86,13 @@ Gotchas verificados dos invocadores (já embutidos no runner, documentados pra q
 
 ### `usabilidade-br`
 
-Audita usabilidade de apps web contra as 10 heurísticas de Jakob Nielsen e gera um HTML report local self-contained com pontuação por heurística, evidência visual (screenshots via Chrome MCP) e um **fix prompt copiável por violação** — pronto pra colar em outro Claude Code apontando `file:line` quando `--code` é informado.
+Audita usabilidade de apps web em dois passes: as 10 heurísticas de Jakob Nielsen e um segundo passe com leis de UX (Hick, Fitts, Jakob, Doherty, Miller e o resto do catálogo). Cada achado cita a lei e a heurística de origem; o fix prompt leva o critério numérico (toque >= 44 px, resposta <= 400 ms, mais de 5 ações iguais no mesmo patamar viram "Mais"). O score tem duas camadas e a lista não duplica: o geral é a camada Nielsen, a camada leis relê os achados com lei sem somar outra multa.
+
+O cálculo é `python3 skills/usabilidade-br/score.py`. As regras estão em `leis.md`, escritas para esta skill, com crédito a Leandro Rezende (Bold School) e a Laws of UX — sem copiar o arquivo dele.
 
 Invocação: `/tapioca:usabilidade-br <url> [--code <path>] [--rotas <r1,r2>]`.
 
-Companion agent `usabilidade-br` paraleliza 10 passes (um por heurística) e correlaciona código ↔ evidência. Ver [`skills/usabilidade-br/SKILL.md`](./skills/usabilidade-br/SKILL.md) e [`skills/usabilidade-br/DESIGN.md`](./skills/usabilidade-br/DESIGN.md).
+Companion agent `usabilidade-br` paraleliza os 10 passes de heurística, roda o passe de leis em seguida e funde com `score.py`. Ver [`skills/usabilidade-br/SKILL.md`](./skills/usabilidade-br/SKILL.md), [`skills/usabilidade-br/leis.md`](./skills/usabilidade-br/leis.md) e [`skills/usabilidade-br/DESIGN.md`](./skills/usabilidade-br/DESIGN.md).
 
 ### `humanizer-br`
 
@@ -122,7 +127,7 @@ Ver [`skills/web-vitals-ci/SKILL.md`](./skills/web-vitals-ci/SKILL.md) e [`skill
 
 ### `usabilidade-br`
 
-Companion da skill `usabilidade-br`. Paraleliza os 10 passes (um por heurística), correlaciona violações com componentes via grep no `--code` informado, calcula scores e monta o HTML report. Invocado automaticamente quando o usuário passa `--code`, múltiplas rotas, ou pede "audit sério".
+Companion da skill `usabilidade-br`. Paraleliza os 10 passes (um por heurística), roda o passe de leis de UX depois, funde os achados com `score.py` (duas camadas, sem duplicar ficha) e correlaciona violações com componentes via grep no `--code` informado. Invocado automaticamente quando o usuário passa `--code`, múltiplas rotas, ou pede "audit sério".
 
 ### `humanizer-br`
 

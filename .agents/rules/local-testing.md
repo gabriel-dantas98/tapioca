@@ -35,3 +35,5 @@ O harness mora em `.agents/skills/smoke-test-skills/`. Ele e a fonte unica: tant
 ## Contrato de verificacao
 
 Cada skill registra no `run.sh` o par (prompt, verificador). `humanizer-br` usa `scripts/check-output.sh` (>= 8 padroes detectados, sem emoji decorativo). Skill nova so entra no catalogo de oneshot quando tem verificador deterministico.
+
+`usabilidade-br` tem smoke token-free: `python3 skills/usabilidade-br/tests/smoke_test.py` (score e contrato das leis). Oneshot de CLI continua pendente.
