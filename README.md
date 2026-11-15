@@ -22,7 +22,7 @@ Distributable plugin for [Claude Code](https://code.claude.com/docs/en/plugins) 
 <details>
 <summary><strong>PT</strong> — A nossa base, o seu recheio.</summary>
 
-Plugin com skills e agents sob o namespace `tapioca`. A marca é a base; cada skill é um recheio. Algumas fillings são de domínio PT-BR (ex.: `humanizer-br`); outras são agnósticas (ex.: `multi-gen`, `google-sheets-apps-script`).
+Plugin com skills e agents sob o namespace `tapioca`. A marca é a base; cada skill é um recheio. Algumas fillings são de domínio PT-BR (ex.: `humanizer-br`); outras são agnósticas (ex.: `multi-gen`, `google-sheets-apps-script`, `web-vitals-ci`).
 
 </details>
 
@@ -77,6 +77,14 @@ Google Sheets and Google Docs automation via Apps Script (browser mode — no GC
 ```
 
 Upstream: [gist v2.6](https://gist.github.com/gabriel-dantas98/6ad86b6bfab840703ec214f228c3004b).
+
+### `/tapioca:web-vitals-ci`
+
+Teaches the agent how to add a **lab Core Web Vitals regression gate** to another repo's CI: `@lhci/cli` against a local production-like preview (not production), calibrated Perf / LCP / CLS / TBT budgets, GitHub Actions job, and docs for updating thresholds. Portable templates ship under `skills/web-vitals-ci/templates/`.
+
+```text
+/tapioca:web-vitals-ci
+```
 
 ## Install
 
@@ -149,7 +157,8 @@ tapioca/
 │   ├── humanizer-br/
 │   ├── usabilidade-br/
 │   ├── multi-gen/
-│   └── google-sheets-apps-script/
+│   ├── google-sheets-apps-script/
+│   └── web-vitals-ci/
 └── agents/
     ├── humanizer-br.md
     └── usabilidade-br.md
@@ -162,6 +171,7 @@ tapioca/
 | **v0.1** | `humanizer-br` (skill + agent), plugin format, AGENTS.md |
 | **v0.2** | `usabilidade-br`, `multi-gen` |
 | **v0.3** | `google-sheets-apps-script`, marketplace manifests |
+| **v0.4** | `web-vitals-ci` (Lighthouse CI gate skill + templates) |
 | next | More fillings; official marketplace submissions |
 
 No hooks, MCP, or LSP in the short term. Skills and agents until the collection justifies more.

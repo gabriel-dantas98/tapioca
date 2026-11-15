@@ -1,0 +1,5 @@
+# Lighthouse CI working directory (reports also land under output/lhci)
+.lighthouseci/
+
+# Uncomment if the repo does not already ignore generated output/
+# output/
