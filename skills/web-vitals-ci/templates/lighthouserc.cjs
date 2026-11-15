@@ -15,21 +15,15 @@
  * - Next:   'npx next start -H 127.0.0.1 -p 3000' + ready pattern 'Ready'
  * - Static: 'npx serve dist -l 4173' (add SPA fallback if client-routed)
  *
- * Chrome on GitHub Actions (evidence: 3Dantas PR #82):
+ * Chrome on GitHub Actions (confirmed: 3Dantas PR #82 @ 8f2b417):
  * - Playwright Chromium on ubuntu-latest dies with "No usable sandbox!"
- * - Setting ONLY collect.chromeFlags as a string was NOT enough — ChromeLauncher
- *   still launched without --no-sandbox (same FATAL in chrome-err.log).
- * - Belt-and-suspenders below: string + array forms, plus --disable-setuid-sandbox.
- * - If that still fails, switch CHROME_PATH off Playwright Chromium to
- *   google-chrome-stable / puppeteer Chrome (see workflow-job.yml).
+ * - Root cause: LHCI NodeRunner ONLY forwards collect.settings.chromeFlags
+ *   (`@lhci/cli/src/collect/node-runner.js`). Top-level collect.chromeFlags
+ *   is ignored — putting flags there alone never reaches ChromeLauncher.
+ * - Required location: collect.settings.chromeFlags (string is fine).
+ * - Local proof: NodeRunner.computeArgumentsAndCleanup emits these flags
+ *   into the Lighthouse CLI flags file with --headless=new.
  */
-
-const CI_CHROME_FLAGS = [
-  '--no-sandbox',
-  '--disable-setuid-sandbox',
-  '--disable-dev-shm-usage',
-];
-
 module.exports = {
   ci: {
     collect: {
@@ -48,13 +42,13 @@ module.exports = {
       ],
       numberOfRuns: 3,
       chromePath: process.env.CHROME_PATH || undefined,
-      // LHCI collect-level (string). Do NOT rely on this alone with Playwright Chromium.
-      chromeFlags: CI_CHROME_FLAGS.join(' '),
+      // Do NOT put chromeFlags here — NodeRunner ignores collect.chromeFlags.
       settings: {
+        // REQUIRED: only settings.chromeFlags is forwarded to ChromeLauncher.
+        chromeFlags:
+          '--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage',
         onlyCategories: ['performance'],
         skipAudits: ['uses-http2', 'bf-cache'],
-        // Lighthouse settings often reach ChromeLauncher more reliably as an array.
-        chromeFlags: CI_CHROME_FLAGS,
       },
     },
     assert: {

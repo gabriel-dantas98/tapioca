@@ -64,7 +64,7 @@ Regras:
 - SPA com `BrowserRouter`: o preview precisa de fallback pra `index.html` (Vite `preview` ja faz; `serve` com SPA flag se usar static).
 - Confirme a porta e o `startServerReadyPattern` batendo o comando localmente uma vez se duvidar.
 - **Vite + CI:** nao use `Local:` como ready pattern — o Vite pinta ANSI em volta do label e o match flakeia. Prefira `NO_COLOR=1` no comando **e** um pattern na URL (`http://127\\.0\\.0\\.1:4173`).
-- **Chromium no GitHub Actions (Playwright):** sandbox flags obrigatorias, mas **`collect.chromeFlags` string sozinho ja falhou em producao** (flags nao chegaram ao ChromeLauncher). Use o padrao do template (string + array em `settings`, com `--disable-setuid-sandbox`). Se o log ainda mostrar `No usable sandbox!`, mude o browser (Chrome apt / Puppeteer), nao so a string de flags.
+- **Chromium no GitHub Actions (Playwright):** sandbox flags **obrigatorias em `collect.settings.chromeFlags`**. Top-level `collect.chromeFlags` e **ignorado** pelo LHCI NodeRunner — nunca coloque flags so la.
 
 ### 2. Escolher rotas criticas
 
@@ -120,7 +120,7 @@ Padrao fixo:
 - **TBT** = proxy de lab para **INP** (INP nao e confiavel no lab do Lighthouse)
 - Upload `filesystem` → `./output/lhci` (gitignored)
 - `chromePath: process.env.CHROME_PATH || undefined`
-- Chrome flags: `collect.chromeFlags` (string) **e** `collect.settings.chromeFlags` (array) com `--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage`. Nao confie so no collect-level string.
+- Chrome flags: **somente** `collect.settings.chromeFlags` (string ok) com `--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage`. Top-level `collect.chromeFlags` e ignorado pelo NodeRunner.
 - Vite: `NO_COLOR=1` no `startServerCommand`; ready pattern = URL/porta, nao `Local:`
 
 ### 5. Calibrar budgets (obrigatorio)
@@ -154,8 +154,8 @@ Checklist do job:
 
 - Mesmo Node do resto do CI
 - `npm ci` → `npm run build` → Chromium → `npm run test:web-vitals`
-- Chrome no runner: Playwright Chromium **ou** (mais seguro se sandbox continuar falhando) `google-chrome-stable` / Puppeteer Chrome — ver gotcha #1
-- `lighthouserc.cjs` com flags em **dois** lugares (string em `collect.chromeFlags` **e** array em `collect.settings.chromeFlags`), incluindo `--disable-setuid-sandbox`
+- Chrome no runner: Playwright Chromium ok desde que `settings.chromeFlags` esteja certo (ver gotcha #1)
+- `lighthouserc.cjs` com `collect.settings.chromeFlags: '--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage'` (nao top-level `collect.chromeFlags`)
 - Vite: `NO_COLOR=1` + ready pattern na URL/porta (ver gotchas)
 - `timeout-minutes` generoso (15–25) — 3 runs × N URLs demora
 - Upload artifact de `output/lhci` e `.lighthouseci` (`if: !cancelled()`)
@@ -165,10 +165,17 @@ Nao reinvente install/cache se o workflow ja tem steps reutilizaveis — espelhe
 
 ### CI gotchas (verificados)
 
-1. **`collect.chromeFlags` sozinho NAO basta com Playwright Chromium.** Evidencia (3Dantas PR #82, job `web-vitals` em `7bf5697`): config tinha `collect.chromeFlags: '--no-sandbox --disable-dev-shm-usage'` e o ChromeLauncher ainda morreu com `No usable sandbox!` / `chrome-err.log` pedindo `--no-sandbox` — ou seja, a flag **nao chegou** ao processo. Mitigacao no template:
-   - string em `collect.chromeFlags` **e** array em `collect.settings.chromeFlags`
-   - incluir `--disable-setuid-sandbox` alem de `--no-sandbox --disable-dev-shm-usage`
-   - se ainda falhar: troque `CHROME_PATH` para Chrome "de verdade" (`google-chrome-stable` via apt, ou Puppeteer), nao o Chromium do Playwright
+1. **Sandbox flags vivem em `collect.settings.chromeFlags` — top-level e ignorado.**
+   - Sintoma: Playwright Chromium em GHA → `No usable sandbox!` (mesmo com `collect.chromeFlags` setado).
+   - Root cause: LHCI `NodeRunner` so encaminha `collect.settings.chromeFlags` (`@lhci/cli/src/collect/node-runner.js`). Top-level `collect.chromeFlags` **nunca** chega ao ChromeLauncher.
+   - Fix confirmado (3Dantas PR #82 @ `8f2b417`):
+     ```js
+     settings: {
+       chromeFlags: '--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage',
+     }
+     ```
+   - Prova local: `NodeRunner.computeArgumentsAndCleanup` emite essas flags no arquivo de flags do Lighthouse CLI junto com `--headless=new`.
+   - Dual-plumb (top-level + settings) e opcional e inofensivo, mas **top-level sozinho nunca funciona**.
 2. **Ready pattern `Local:` flakeia com Vite colorido.** Stdout vem com ANSI. Use `NO_COLOR=1` no `startServerCommand` e match a URL/porta (`http://127\\.0\\.0\\.1:4173` ou `4173`), nao o label.
 
 ### 7. Docs + gitignore + AGENTS/README do repo alvo
@@ -202,14 +209,13 @@ Nao reinvente install/cache se o workflow ja tem steps reutilizaveis — espelhe
 - Assertar INP direto no lab → metric ausente/instavel; use TBT.
 - Nao setar `CHROME_PATH` em runners sem Chrome de sistema.
 - Ready pattern `Local:` com Vite → timeout "server not ready" no CI (ANSI). Use URL + `NO_COLOR=1`.
-- So `collect.chromeFlags` string com Playwright Chromium → ainda pode dar `No usable sandbox!` (flags nao chegam ao launcher). Use settings array + `--disable-setuid-sandbox`, ou Chrome nao-Playwright.
+- Colocar sandbox flags so em `collect.chromeFlags` (top-level) → NodeRunner ignora → `No usable sandbox!`. Use `collect.settings.chromeFlags`.
 
 ## Definition of done
 
 - [ ] `@lhci/cli` em devDependencies + script `test:web-vitals`
 - [ ] `lighthouserc.cjs` com collect + assertMatrix por URL + upload filesystem
-- [ ] `chromeFlags` em collect (string) **e** settings (array), com `--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage`
-- [ ] Se CI ainda logar `No usable sandbox!`, trocar `CHROME_PATH` para Chrome apt/Puppeteer (nao so ajustar a string)
+- [ ] `collect.settings.chromeFlags` com `--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage` (nao so top-level `collect.chromeFlags`)
 - [ ] Ready pattern ANSI-safe (`NO_COLOR=1` + match na URL; sem `Local:` cru no Vite)
 - [ ] Job `web-vitals` no CI (build → Chromium → lhci)
 - [ ] Budgets calibrados (baseline verde com margem)

@@ -70,11 +70,10 @@ Budgets nao sao universais. Templates trazem estrutura e comentarios; numeros ve
 
 Templates ja embutem gotchas verificados em GitHub Actions:
 
-- Playwright Chromium em `ubuntu-latest` → `No usable sandbox!`
-- Evidencia: `collect.chromeFlags` string sozinho **nao** chegou ao ChromeLauncher (3Dantas PR #82 / job web-vitals @ `7bf5697`)
-- Template usa string + array (`settings.chromeFlags`) + `--disable-setuid-sandbox`; fallback documentado para Chrome apt/Puppeteer
+- Playwright Chromium em `ubuntu-latest` → `No usable sandbox!` sem flags
+- **Root cause (confirmado 3Dantas PR #82 @ `8f2b417`):** LHCI `NodeRunner` so encaminha `collect.settings.chromeFlags` (`@lhci/cli/src/collect/node-runner.js`). Top-level `collect.chromeFlags` e ignorado.
+- **Required:** `settings.chromeFlags: '--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage'` (string ok)
 - Ready pattern do Vite nao pode depender do label `Local:` (ANSI); usar URL/porta + `NO_COLOR=1`
-- Quando o padrao confirmado no repo de referencia estabilizar, espelhar aqui
 
 ## Quality bar
 

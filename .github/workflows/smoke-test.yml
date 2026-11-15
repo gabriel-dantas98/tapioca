@@ -80,11 +80,12 @@ jobs:
           grep -q -- '--disable-dev-shm-usage' skills/web-vitals-ci/templates/lighthouserc.cjs
           grep -q 'NO_COLOR=1' skills/web-vitals-ci/templates/lighthouserc.cjs
           grep -q 'http://127' skills/web-vitals-ci/templates/lighthouserc.cjs
-          grep -q 'CI_CHROME_FLAGS' skills/web-vitals-ci/templates/lighthouserc.cjs
           grep -q 'settings.chromeFlags' skills/web-vitals-ci/SKILL.md
+          grep -q 'node-runner.js' skills/web-vitals-ci/SKILL.md
           grep -q 'No usable sandbox' skills/web-vitals-ci/SKILL.md
           grep -q 'NO_COLOR' skills/web-vitals-ci/SKILL.md
-          grep -q 'google-chrome-stable' skills/web-vitals-ci/templates/workflow-job.yml
+          # Required location is settings.chromeFlags; top-level collect.chromeFlags must not be the only path
+          node -e "const c=require('./skills/web-vitals-ci/templates/lighthouserc.cjs'); if(!c.ci.collect.settings.chromeFlags) process.exit(1); if(c.ci.collect.chromeFlags) { console.error('top-level collect.chromeFlags should be omitted (NodeRunner ignores it)'); process.exit(1); }"
 
   google-sheets-static:
     name: google-sheets static eval (token-free)
