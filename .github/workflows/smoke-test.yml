@@ -76,11 +76,15 @@ jobs:
           grep -q 'total-blocking-time' skills/web-vitals-ci/templates/lighthouserc.cjs
           grep -q 'test:web-vitals' skills/web-vitals-ci/SKILL.md
           grep -q -- '--no-sandbox' skills/web-vitals-ci/templates/lighthouserc.cjs
+          grep -q -- '--disable-setuid-sandbox' skills/web-vitals-ci/templates/lighthouserc.cjs
           grep -q -- '--disable-dev-shm-usage' skills/web-vitals-ci/templates/lighthouserc.cjs
           grep -q 'NO_COLOR=1' skills/web-vitals-ci/templates/lighthouserc.cjs
           grep -q 'http://127' skills/web-vitals-ci/templates/lighthouserc.cjs
-          grep -q 'no-sandbox' skills/web-vitals-ci/SKILL.md
+          grep -q 'CI_CHROME_FLAGS' skills/web-vitals-ci/templates/lighthouserc.cjs
+          grep -q 'settings.chromeFlags' skills/web-vitals-ci/SKILL.md
+          grep -q 'No usable sandbox' skills/web-vitals-ci/SKILL.md
           grep -q 'NO_COLOR' skills/web-vitals-ci/SKILL.md
+          grep -q 'google-chrome-stable' skills/web-vitals-ci/templates/workflow-job.yml
 
   google-sheets-static:
     name: google-sheets static eval (token-free)

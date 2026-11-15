@@ -54,5 +54,5 @@ GitHub Actions job `web-vitals` runs on PRs and the default branch: install → 
 
 ### CI gotchas
 
-- **Playwright Chromium on `ubuntu-latest`:** `lighthouserc.cjs` must set `chromeFlags: '--no-sandbox --disable-dev-shm-usage'` (collect + settings). Without them Chrome fails to launch in Actions.
-- **Vite ready matching:** do not match `Local:` — Vite ANSI-colors that label and LHCI can time out waiting for the server. Prefer `NO_COLOR=1` on the preview command and a ready pattern on the listen URL (e.g. `http://127\\.0\\.0\\.1:4173`).
+- **Playwright Chromium + sandbox:** on `ubuntu-latest`, ChromeLauncher dies with `No usable sandbox!`. Setting **only** `collect.chromeFlags` as a string has failed in the wild — the process still launched without `--no-sandbox`. Use the template pattern: string on `collect.chromeFlags` **and** array on `collect.settings.chromeFlags`, including `--disable-setuid-sandbox`. If the log still shows `No usable sandbox!`, point `CHROME_PATH` at `google-chrome-stable` / Puppeteer Chrome instead of Playwright Chromium.
+- **Vite ready matching:** do not match `Local:` — Vite ANSI-colors that label and LHCI can time out waiting for the server. Prefer `NO_COLOR=1` on the preview command and a ready pattern on the listen URL/port (e.g. `http://127\\.0\\.0\\.1:4173` or `4173`).

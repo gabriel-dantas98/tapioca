@@ -1,12 +1,15 @@
 # Fragment: add under `jobs:` in an existing GitHub Actions CI workflow.
 # Adapt Node version, package manager, and Chromium install to the target repo.
 #
-# Prefer Playwright Chromium when the repo already uses Playwright.
-# Otherwise install Chrome another way and point CHROME_PATH at it.
+# Chrome / sandbox (evidence from 3Dantas PR #82 web-vitals job):
+# - Playwright Chromium on ubuntu-latest → "No usable sandbox!"
+# - collect.chromeFlags STRING ALONE was not enough (ChromeLauncher still
+#   launched without --no-sandbox). lighthouserc must also set
+#   settings.chromeFlags as an array (+ --disable-setuid-sandbox).
+# - If Playwright + dual chromeFlags still fails, use Path B below
+#   (google-chrome-stable) instead of Playwright Chromium.
 #
-# lighthouserc.cjs MUST include (verified on GHA + Playwright Chromium):
-#   chromeFlags: '--no-sandbox --disable-dev-shm-usage'
-# Vite preview: use NO_COLOR=1 and ready-match the listen URL (not "Local:").
+# Vite preview: NO_COLOR=1 and ready-match the listen URL/port (not "Local:").
 
   web-vitals:
     name: web-vitals
@@ -25,6 +28,7 @@
       - name: Install dependencies
         run: npm ci
 
+      # --- Path A: Playwright Chromium (only if lighthouserc dual chromeFlags works) ---
       - name: Cache Playwright browsers
         uses: actions/cache@v6
         with:
@@ -36,12 +40,23 @@
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
+      # --- Path B (fallback if Path A still logs "No usable sandbox!"): ---
+      # - name: Install Google Chrome
+      #   run: |
+      #     wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg
+      #     echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+      #     sudo apt-get update
+      #     sudo apt-get install -y google-chrome-stable
+      # Then set CHROME_PATH=/usr/bin/google-chrome-stable below (skip Playwright steps).
+
       - name: Build production bundle
         run: npm run build
 
       - name: Run Web Vitals gate
         run: |
           export CHROME_PATH="$(node -e "console.log(require('playwright').chromium.executablePath())")"
+          # Path B alternative:
+          # export CHROME_PATH=/usr/bin/google-chrome-stable
           npm run test:web-vitals
 
       - name: Upload Lighthouse reports

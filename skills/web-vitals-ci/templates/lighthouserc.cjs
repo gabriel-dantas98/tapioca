@@ -10,16 +10,26 @@
  * with ~15–25% headroom so the current baseline passes, but further
  * regressions fail. Replace placeholder assertions after the first local run.
  *
- * Update budgets:
- *   1. npm run build && npm run test:web-vitals
- *   2. Inspect medians in the LHCI output / output/lhci reports
- *   3. Adjust assertMatrix below (keep a small safety margin)
- *
  * Stack notes:
  * - Vite:   startServerCommand below is the default
  * - Next:   'npx next start -H 127.0.0.1 -p 3000' + ready pattern 'Ready'
  * - Static: 'npx serve dist -l 4173' (add SPA fallback if client-routed)
+ *
+ * Chrome on GitHub Actions (evidence: 3Dantas PR #82):
+ * - Playwright Chromium on ubuntu-latest dies with "No usable sandbox!"
+ * - Setting ONLY collect.chromeFlags as a string was NOT enough — ChromeLauncher
+ *   still launched without --no-sandbox (same FATAL in chrome-err.log).
+ * - Belt-and-suspenders below: string + array forms, plus --disable-setuid-sandbox.
+ * - If that still fails, switch CHROME_PATH off Playwright Chromium to
+ *   google-chrome-stable / puppeteer Chrome (see workflow-job.yml).
  */
+
+const CI_CHROME_FLAGS = [
+  '--no-sandbox',
+  '--disable-setuid-sandbox',
+  '--disable-dev-shm-usage',
+];
+
 module.exports = {
   ci: {
     collect: {
@@ -27,9 +37,9 @@ module.exports = {
       // NO_COLOR=1: Vite otherwise ANSI-colors "Local:" and ready matching flakes in CI.
       startServerCommand:
         'NO_COLOR=1 npm run preview -- --host 127.0.0.1 --port 4173',
-      // Match the URL, not the "Local:" label (ANSI-safe even if color sneaks back).
+      // Match the URL/port, not the "Local:" label (ANSI-safe).
       startServerReadyPattern: 'http://127\\.0\\.0\\.1:4173',
-      startServerReadyTimeout: 60000,
+      startServerReadyTimeout: 120000,
       url: [
         // Replace with 2–4 critical, stable routes for THIS app.
         'http://127.0.0.1:4173/',
@@ -38,12 +48,13 @@ module.exports = {
       ],
       numberOfRuns: 3,
       chromePath: process.env.CHROME_PATH || undefined,
-      // Required on GitHub Actions when using Playwright Chromium (sandbox /tmpfs).
-      chromeFlags: '--no-sandbox --disable-dev-shm-usage',
+      // LHCI collect-level (string). Do NOT rely on this alone with Playwright Chromium.
+      chromeFlags: CI_CHROME_FLAGS.join(' '),
       settings: {
         onlyCategories: ['performance'],
         skipAudits: ['uses-http2', 'bf-cache'],
-        chromeFlags: '--no-sandbox --disable-dev-shm-usage',
+        // Lighthouse settings often reach ChromeLauncher more reliably as an array.
+        chromeFlags: CI_CHROME_FLAGS,
       },
     },
     assert: {
