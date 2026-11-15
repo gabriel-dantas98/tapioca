@@ -41,19 +41,23 @@ tapioca/
 │   ├── usabilidade-br/
 │   │   ├── SKILL.md
 │   │   └── DESIGN.md
-│   └── multi-gen/
+│   ├── multi-gen/
+│   │   ├── SKILL.md
+│   │   ├── DESIGN.md
+│   │   ├── run_engines.py
+│   │   ├── build_preview.py
+│   │   └── tests/smoke_test.py
+│   ├── google-sheets-apps-script/
+│   │   ├── SKILL.md
+│   │   ├── DESIGN.md
+│   │   ├── wizard.md
+│   │   ├── scripts/sheets_agent.py
+│   │   ├── templates/
+│   │   └── evals/
+│   └── web-vitals-ci/
 │       ├── SKILL.md
 │       ├── DESIGN.md
-│       ├── run_engines.py
-│       ├── build_preview.py
-│       └── tests/smoke_test.py
-│   └── google-sheets-apps-script/
-│       ├── SKILL.md
-│       ├── DESIGN.md
-│       ├── wizard.md
-│       ├── scripts/sheets_agent.py
-│       ├── templates/
-│       └── evals/
+│       └── templates/        # lighthouserc, workflow job, docs snippet
 └── agents/
     ├── humanizer-br.md
     └── usabilidade-br.md
@@ -105,6 +109,14 @@ Automação self-service de **Google Sheets** e **Google Docs** via Apps Script 
 Upstream: [gist v2.6](https://gist.github.com/gabriel-dantas98/6ad86b6bfab840703ec214f228c3004b). Registry: `~/.config/google-sheets-agent/`. Evals comportamentais em `evals/evals.json` + `evals/grade_runs.py`; static smoke em `evals/run_static.py`.
 
 Ver [`skills/google-sheets-apps-script/SKILL.md`](./skills/google-sheets-apps-script/SKILL.md) e [`skills/google-sheets-apps-script/DESIGN.md`](./skills/google-sheets-apps-script/DESIGN.md).
+
+### `web-vitals-ci`
+
+Implementa um **gate de regressão de Core Web Vitals (lab)** no CI de um repo web alvo: `@lhci/cli` contra preview local (não produção), budgets calibrados (Perf / LCP / CLS / TBT como proxy de INP), job GitHub Actions e docs de atualização. Templates portáteis em `skills/web-vitals-ci/templates/`.
+
+Invocação: `/tapioca:web-vitals-ci [path]`.
+
+Ver [`skills/web-vitals-ci/SKILL.md`](./skills/web-vitals-ci/SKILL.md) e [`skills/web-vitals-ci/DESIGN.md`](./skills/web-vitals-ci/DESIGN.md).
 
 ## Agents
 

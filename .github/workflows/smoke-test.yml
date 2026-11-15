@@ -37,7 +37,7 @@ jobs:
           echo "marketplace manifests OK"
       - name: skill frontmatter exists
         run: |
-          for skill in humanizer-br usabilidade-br multi-gen google-sheets-apps-script; do
+          for skill in humanizer-br usabilidade-br multi-gen google-sheets-apps-script web-vitals-ci; do
             test -f "skills/$skill/SKILL.md"
             head -1 "skills/$skill/SKILL.md" | grep -q '^---$'
             grep -q "^name: $skill$" "skills/$skill/SKILL.md"
@@ -65,6 +65,22 @@ jobs:
           test -f skills/google-sheets-apps-script/templates/Code.gs
           test -f skills/google-sheets-apps-script/DESIGN.md
           test -f skills/google-sheets-apps-script/evals/run_static.py
+      - name: web-vitals-ci present
+        run: |
+          test -f skills/web-vitals-ci/DESIGN.md
+          test -f skills/web-vitals-ci/templates/lighthouserc.cjs
+          test -f skills/web-vitals-ci/templates/workflow-job.yml
+          test -f skills/web-vitals-ci/templates/docs-web-vitals.md
+          test -f skills/web-vitals-ci/templates/package-scripts.json
+          test -f skills/web-vitals-ci/templates/gitignore-snippet.txt
+          grep -q 'total-blocking-time' skills/web-vitals-ci/templates/lighthouserc.cjs
+          grep -q 'test:web-vitals' skills/web-vitals-ci/SKILL.md
+          grep -q -- '--no-sandbox' skills/web-vitals-ci/templates/lighthouserc.cjs
+          grep -q -- '--disable-dev-shm-usage' skills/web-vitals-ci/templates/lighthouserc.cjs
+          grep -q 'NO_COLOR=1' skills/web-vitals-ci/templates/lighthouserc.cjs
+          grep -q 'http://127' skills/web-vitals-ci/templates/lighthouserc.cjs
+          grep -q 'no-sandbox' skills/web-vitals-ci/SKILL.md
+          grep -q 'NO_COLOR' skills/web-vitals-ci/SKILL.md
 
   google-sheets-static:
     name: google-sheets static eval (token-free)

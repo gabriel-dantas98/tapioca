@@ -1,0 +1,9 @@
+{
+  "_comment": "Merge into the target repo package.json. Install with: npm install -D @lhci/cli",
+  "scripts": {
+    "test:web-vitals": "lhci autorun --config=lighthouserc.cjs"
+  },
+  "devDependencies": {
+    "@lhci/cli": "^0.15.1"
+  }
+}
