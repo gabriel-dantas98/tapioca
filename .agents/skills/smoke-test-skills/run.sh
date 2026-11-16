@@ -3,7 +3,7 @@
 # Fonte única: CI (.github/workflows/smoke-test.yml) e este script.
 #
 # Uso: run.sh <modo> [skill] [engine]
-#   modo   = marketplace | oneshot | all   (default: all)
+#   modo   = marketplace | marketplace-claude | oneshot | all   (default: all)
 #   skill  = humanizer-br                  (default: humanizer-br)
 #   engine = claude | cursor | both        (default: both)
 #
@@ -56,8 +56,13 @@ verify_for() {
 
 # --- marketplace (token-free) ----------------------------------------------
 
-run_marketplace() {
-  command -v jq >/dev/null 2>&1 || die "jq não encontrado"
+run_marketplace_structure() {
+  log "estrutura do plugin (scripts/validate-plugin-structure.sh)"
+  bash "$ROOT/scripts/validate-plugin-structure.sh" | tee "$OUT_DIR/structure.txt"
+  ok "plugin structure"
+}
+
+run_marketplace_claude() {
   command -v claude >/dev/null 2>&1 || die "binário 'claude' não encontrado (npm i -g @anthropic-ai/claude-code)"
 
   log "claude plugin validate ."
@@ -66,15 +71,6 @@ run_marketplace() {
     die "claude plugin validate encontrou erros"
   fi
   ok "validate"
-
-  log "shape dos marketplace.json + cursor plugin.json"
-  jq -e '.name == "tapioca" and (.plugins | length > 0) and (.plugins[0].source == "./")' \
-    "$ROOT/.claude-plugin/marketplace.json" >/dev/null
-  jq -e '.name == "tapioca" and (.plugins | length > 0) and (.plugins[0].source == "./")' \
-    "$ROOT/.cursor-plugin/marketplace.json" >/dev/null
-  jq -e '.skills == "./skills/" and .agents == "./agents/"' \
-    "$ROOT/.cursor-plugin/plugin.json" >/dev/null
-  ok "manifest shapes"
 
   # Gotcha: `add .` falha; precisa `./` ou path absoluto.
   log "claude plugin marketplace add ./"
@@ -87,6 +83,11 @@ run_marketplace() {
   test -f "$HOME/.cursor/plugins/local/tapioca/.cursor-plugin/plugin.json" \
     || die "symlink Cursor local quebrado"
   ok "Cursor local symlink"
+}
+
+run_marketplace() {
+  run_marketplace_structure
+  run_marketplace_claude
 }
 
 # --- oneshot (paga token) --------------------------------------------------
@@ -141,8 +142,9 @@ run_oneshot() {
 # --- dispatch --------------------------------------------------------------
 
 case "$MODE" in
-  marketplace) run_marketplace ;;
-  oneshot)     run_oneshot ;;
+  marketplace)        run_marketplace ;;
+  marketplace-claude) run_marketplace_claude ;;
+  oneshot)            run_oneshot ;;
   all)
     run_marketplace
     run_oneshot
@@ -154,5 +156,5 @@ case "$MODE" in
     MODE=oneshot
     run_oneshot
     ;;
-  *) die "modo inválido: '$MODE' (use marketplace | oneshot | all)" ;;
+  *) die "modo inválido: '$MODE' (use marketplace | marketplace-claude | oneshot | all)" ;;
 esac

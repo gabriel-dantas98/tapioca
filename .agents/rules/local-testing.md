@@ -2,7 +2,7 @@
 
 Toda skill shippada precisa rodar de verdade nos dois alvos do plugin — Claude Code e Cursor — via prompt one-shot, antes de considerar pronta. Marketplace precisa validar e carregar localmente antes do `marketplace add owner/repo` em `main`.
 
-O harness mora em `.agents/skills/smoke-test-skills/`. Ele e a fonte unica: tanto o dev local quanto o CI (`.github/workflows/smoke-test.yml`) chamam o mesmo `run.sh`. Nao duplicar o prompt one-shot no YAML.
+O harness mora em `.agents/skills/smoke-test-skills/`. Ele e a fonte unica: tanto o dev local quanto o CI (`.github/workflows/smoke-test.yml`) chamam o mesmo `run.sh`. Validacao estrutural token-free vive em `scripts/validate-plugin-structure.sh` (CI + `run.sh marketplace`). Nao duplicar o prompt one-shot no YAML.
 
 ## Como rodar local
 
