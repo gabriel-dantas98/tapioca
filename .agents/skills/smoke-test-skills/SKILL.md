@@ -21,7 +21,7 @@ Fonte unica: o CI em `.github/workflows/smoke-test.yml` chama o mesmo `run.sh`.
 
 ```bash
 # sintaxe: run.sh <modo> [skill] [engine]
-#   modo   = marketplace | oneshot | all   (default: all)
+#   modo   = marketplace | marketplace-claude | oneshot | all   (default: all)
 #   skill  = humanizer-br                  (default: humanizer-br)
 #   engine = claude | cursor | both        (default: both; so oneshot/all)
 
