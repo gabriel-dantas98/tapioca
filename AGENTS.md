@@ -54,10 +54,15 @@ tapioca/
 │   │   ├── scripts/sheets_agent.py
 │   │   ├── templates/
 │   │   └── evals/
-│   └── web-vitals-ci/
+│   ├── web-vitals-ci/
+│   │   ├── SKILL.md
+│   │   ├── DESIGN.md
+│   │   └── templates/
+│   └── animar-modelos-3d-em-pixel-art/
 │       ├── SKILL.md
-│       ├── DESIGN.md
-│       └── templates/        # lighthouserc, workflow job, docs snippet
+│       ├── examples/
+│       ├── references/
+│       └── scripts/        # lighthouserc, workflow job, docs snippet
 └── agents/
     ├── humanizer-br.md
     └── usabilidade-br.md
@@ -117,6 +122,14 @@ Implementa um **gate de regressão de Core Web Vitals (lab)** no CI de um repo w
 Invocação: `/tapioca:web-vitals-ci [path]`.
 
 Ver [`skills/web-vitals-ci/SKILL.md`](./skills/web-vitals-ci/SKILL.md) e [`skills/web-vitals-ci/DESIGN.md`](./skills/web-vitals-ci/DESIGN.md).
+
+### `animar-modelos-3d-em-pixel-art`
+
+Transforma uma malha 3MF, STL ou GLB em animação editável e diorama web. Inclui inventário de recursos do 3MF e um exemplo reproduzível com Blender, Godot e Canvas 2D.
+
+Invocação: `/tapioca:animar-modelos-3d-em-pixel-art`.
+
+Ver [SKILL.md](./skills/animar-modelos-3d-em-pixel-art/SKILL.md) e o [guia de reprodução](./skills/animar-modelos-3d-em-pixel-art/references/workflow.md).
 
 ## Agents
 

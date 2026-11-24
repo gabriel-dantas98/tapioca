@@ -86,6 +86,16 @@ Teaches the agent how to add a **lab Core Web Vitals regression gate** to anothe
 /tapioca:web-vitals-ci
 ```
 
+### `/tapioca:animar-modelos-3d-em-pixel-art`
+
+Turn a 3MF, STL, or GLB into an animated pixel-art diorama. The skill covers mesh inspection, Blender rigging, GLB verification in Godot, and a Canvas 2D player. The bundled Bumblebee recipe reproduces the eight clips from the original 3MF supplied by the user.
+
+```text
+/tapioca:animar-modelos-3d-em-pixel-art
+```
+
+See the [reproduction and adaptation guide](./skills/animar-modelos-3d-em-pixel-art/references/workflow.md).
+
 ## Install
 
 ### Claude Code
@@ -158,7 +168,8 @@ tapioca/
 │   ├── usabilidade-br/
 │   ├── multi-gen/
 │   ├── google-sheets-apps-script/
-│   └── web-vitals-ci/
+│   ├── web-vitals-ci/
+│   └── animar-modelos-3d-em-pixel-art/
 └── agents/
     ├── humanizer-br.md
     └── usabilidade-br.md
@@ -172,6 +183,7 @@ tapioca/
 | **v0.2** | `usabilidade-br`, `multi-gen` |
 | **v0.3** | `google-sheets-apps-script`, marketplace manifests |
 | **v0.4** | `web-vitals-ci` (Lighthouse CI gate skill + templates) |
+| **v0.5** | `animar-modelos-3d-em-pixel-art` (Blender rig, GLB export, and pixel-art diorama) |
 | next | More fillings; official marketplace submissions |
 
 No hooks, MCP, or LSP in the short term. Skills and agents until the collection justifies more.

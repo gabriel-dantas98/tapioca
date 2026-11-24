@@ -37,7 +37,7 @@ jobs:
           echo "marketplace manifests OK"
       - name: skill frontmatter exists
         run: |
-          for skill in humanizer-br usabilidade-br multi-gen google-sheets-apps-script web-vitals-ci; do
+          for skill in humanizer-br usabilidade-br multi-gen google-sheets-apps-script web-vitals-ci animar-modelos-3d-em-pixel-art; do
             test -f "skills/$skill/SKILL.md"
             head -1 "skills/$skill/SKILL.md" | grep -q '^---$'
             grep -q "^name: $skill$" "skills/$skill/SKILL.md"

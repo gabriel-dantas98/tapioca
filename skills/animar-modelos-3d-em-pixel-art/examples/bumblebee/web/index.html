@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#151719">
+<meta name="description" content="Bumblebee articulado em um diorama animado de pixel art.">
+<title>Bumblebee · Pixel Loop</title>
+<link rel="stylesheet" href="style.css">
+<script src="loop.js" defer></script>
+</head>
+<body>
+<main>
+<header class="masthead"><span class="brand"><i></i> PIXEL LOOP</span><span class="mono edition">DIORAMA EM MOVIMENTO</span></header>
+<section class="exhibit" aria-labelledby="title">
+  <div class="theater">
+    <div class="stage">
+      <canvas id="scene" width="360" height="252" role="img" aria-label="Bumblebee em pixel art sobre uma plataforma em um hangar"></canvas>
+      <div class="stage-label mono"><span class="signal"></span><span id="state">EM LOOP</span></div>
+    </div>
+    <div class="transport">
+      <div class="now"><span class="mono label">EM EXIBIÇÃO</span><span id="active" aria-live="polite">Órbita</span></div>
+      <div class="controls">
+        <button type="button" id="pause" aria-label="Pausar" title="Pausar">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path id="play-icon" d="M9 5v14m6-14v14"/></svg>
+        </button>
+        <button type="button" id="skip" aria-label="Próxima animação" title="Próxima animação">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 5 10 7-10 7V5zm12 0v14"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="track" aria-hidden="true"><div id="progress"></div></div>
+  </div>
+  <aside>
+    <div class="intro">
+      <h1 id="title">Bumble<wbr>bee<span>.</span></h1>
+      <p>Bumblebee em pixel art, com movimentos de combate e animações em ordem aleatória.</p>
+    </div>
+    <div class="selector">
+      <h2 class="mono label">ANIMAÇÕES</h2>
+      <div class="moves">
+        <button type="button" data-move="orbit" aria-pressed="true"><span class="glyph">↻</span>Órbita<span class="indicator"></span></button>
+        <button type="button" data-move="walk" aria-pressed="false"><span class="glyph">↝</span>Caminhada<span class="indicator"></span></button>
+        <button type="button" data-move="wave" aria-pressed="false"><span class="glyph">✋︎</span>Aceno<span class="indicator"></span></button>
+        <button type="button" data-move="jump" aria-pressed="false"><span class="glyph">↑</span>Pulo<span class="indicator"></span></button>
+      </div>
+    </div>
+    <div class="selector combat">
+      <div class="selector-heading">
+        <h2 class="mono label">COMBATE</h2>
+        <button id="combat-only" type="button" aria-pressed="false">Só combate</button>
+      </div>
+      <div class="moves">
+        <button type="button" data-move="guard" aria-pressed="false"><span class="glyph" aria-hidden="true">◇</span>Guarda<span class="indicator"></span></button>
+        <button type="button" data-move="dodge" aria-pressed="false"><span class="glyph" aria-hidden="true">↔</span>Esquiva<span class="indicator"></span></button>
+        <button type="button" data-move="pulse" aria-pressed="false"><span class="glyph" aria-hidden="true">✦</span>Pulso de energia<span class="indicator"></span></button>
+        <button type="button" data-move="slam" aria-pressed="false"><span class="glyph" aria-hidden="true">↓</span>Impacto no chão<span class="indicator"></span></button>
+      </div>
+    </div>
+    <div class="downloads">
+      <h2 class="mono label">MODELO 3D</h2>
+      <a href="bumblebee-animado.glb" download>Baixar GLB animado <span>↓</span></a>
+      <a href="bumblebee-editavel.blend" download>Baixar projeto Blender <span>↓</span></a>
+    </div>
+  </aside>
+</section>
+<section class="project-prompt" aria-labelledby="prompt-title">
+  <div class="selector-heading">
+    <h2 id="prompt-title">Prompt pra recriar o diorama</h2>
+    <button type="button" id="copy-prompt">Copiar prompt</button>
+  </div>
+  <textarea id="prompt-text" aria-labelledby="prompt-title" readonly rows="10">Transforme um modelo 3MF em um diorama animado em pixel art para o navegador.
+
+Leia a malha e as cores do 3MF com Python e NumPy. Use o Blender e a API bpy para criar o esqueleto, atribuir pesos à malha e animar braços, mãos e pés. Exporte o projeto .blend e um GLB com os clipes e valide a importação no Godot.
+
+Renderize as poses em baixa resolução com um rasterizador em C e use Pillow para montar atlas WebP com transparência. Crie a página em HTML, CSS e JavaScript com Canvas 2D, loop aleatório, seleção de animação, pausa e uma opção para mostrar só os movimentos de combate. Publique no ChatGPT Sites.
+
+Use estes repositórios como referências visuais para a estética de pixel art e os dioramas:
+https://github.com/cobanov/pixelart-gaussiansplat
+https://github.com/siliconjungle/shapeshift-labs-ink-studio</textarea>
+  <p id="copy-status" role="status"></p>
+  <div class="prompt-links">
+    <a href="https://github.com/cobanov/pixelart-gaussiansplat">pixelart-gaussiansplat</a>
+    <a href="https://github.com/siliconjungle/shapeshift-labs-ink-studio">Ink Studio</a>
+  </div>
+</section>
+</main>
+</body>
+</html>
