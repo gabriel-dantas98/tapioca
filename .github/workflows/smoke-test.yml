@@ -25,16 +25,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: parse manifest
-        run: |
-          jq -e '.name == "tapioca" and (.version | length > 0)' .claude-plugin/plugin.json
-          echo "plugin.json OK"
-      - name: marketplace manifests present + valid
-        run: |
-          jq -e '.name == "tapioca" and (.plugins | length > 0) and (.plugins[0].source == "./")' .claude-plugin/marketplace.json
-          jq -e '.name == "tapioca" and (.plugins | length > 0) and (.plugins[0].source == "./")' .cursor-plugin/marketplace.json
-          jq -e '.skills == "./skills/" and .agents == "./agents/"' .cursor-plugin/plugin.json
-          echo "marketplace manifests OK"
+      - name: plugin + marketplace manifest shapes
+        run: bash scripts/validate-plugin-shapes.sh
       - name: skill frontmatter exists
         run: |
           for skill in humanizer-br usabilidade-br multi-gen google-sheets-apps-script web-vitals-ci; do

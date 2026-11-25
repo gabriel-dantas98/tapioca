@@ -10,6 +10,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 SKILL_DIR = Path(__file__).resolve().parent.parent
+REPO_ROOT = SKILL_DIR.parent.parent
+PLUGIN_SHAPES = REPO_ROOT / "scripts" / "validate-plugin-shapes.sh"
 CLI = SKILL_DIR / "scripts" / "sheets_agent.py"
 CODE_GS = SKILL_DIR / "templates" / "Code.gs"
 DOCS_GS = SKILL_DIR / "templates" / "Docs.gs"
@@ -91,6 +93,19 @@ def check_parse() -> dict:
     return {"check": "CLI parse spreadsheet URL", "passed": ok}
 
 
+def check_plugin_manifest_shapes() -> dict:
+    proc = subprocess.run(
+        ["bash", str(PLUGIN_SHAPES)],
+        capture_output=True,
+        text=True,
+        cwd=REPO_ROOT,
+    )
+    detail = None
+    if proc.returncode != 0:
+        detail = (proc.stderr or proc.stdout or "")[:300]
+    return {"check": "plugin manifest shapes (validate-plugin-shapes.sh)", "passed": proc.returncode == 0, "detail": detail}
+
+
 def check_parse_document() -> dict:
     proc = subprocess.run(
         [
@@ -112,7 +127,12 @@ def check_parse_document() -> dict:
 
 
 def main() -> None:
-    results = check_code_gs() + [check_cli_help(), check_parse(), check_parse_document()]
+    results = check_code_gs() + [
+        check_plugin_manifest_shapes(),
+        check_cli_help(),
+        check_parse(),
+        check_parse_document(),
+    ]
     passed = sum(1 for r in results if r["passed"])
     report = {
         "metadata": {"type": "static", "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")},

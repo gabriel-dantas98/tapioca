@@ -67,13 +67,8 @@ run_marketplace() {
   fi
   ok "validate"
 
-  log "shape dos marketplace.json + cursor plugin.json"
-  jq -e '.name == "tapioca" and (.plugins | length > 0) and (.plugins[0].source == "./")' \
-    "$ROOT/.claude-plugin/marketplace.json" >/dev/null
-  jq -e '.name == "tapioca" and (.plugins | length > 0) and (.plugins[0].source == "./")' \
-    "$ROOT/.cursor-plugin/marketplace.json" >/dev/null
-  jq -e '.skills == "./skills/" and .agents == "./agents/"' \
-    "$ROOT/.cursor-plugin/plugin.json" >/dev/null
+  log "shape dos manifestos (plugin + marketplace)"
+  bash "$ROOT/scripts/validate-plugin-shapes.sh"
   ok "manifest shapes"
 
   # Gotcha: `add .` falha; precisa `./` ou path absoluto.
